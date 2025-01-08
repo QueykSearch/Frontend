@@ -1,119 +1,38 @@
-// import React, { useEffect, useState } from "react";
-// import { TT } from "../../types/TT";
-// import { TTListResponse } from "../../types/TTListResponse";
-// import api from "../../api/api";
-// import { Link } from "react-router-dom";
-
-// const TTList: React.FC = () => {
-//   const [tts, setTts] = useState<TT[]>([]);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     const fetchTTs = async () => {
-//       try {
-//         const response = await api.get<TTListResponse>("/tts");
-//         console.log("Respuesta de la API:", response.data);
-
-//         // Acceder al arreglo de TTs correctamente
-//         if (
-//           response.data &&
-//           response.data.data &&
-//           Array.isArray(response.data.data.data)
-//         ) {
-//           setTts(response.data.data.data);
-//         } else {
-//           setError("La respuesta de la API no contiene un arreglo de TT.");
-//         }
-
-//         setLoading(false);
-//       } catch (err: any) {
-//         console.error("Error al obtener TT:", err);
-//         setError(err.message || "Error desconocido al obtener TT.");
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchTTs();
-//   }, []);
-
-//   const handleDelete = async (id: string) => {
-//     if (window.confirm("¿Estás seguro de eliminar este TT?")) {
-//       try {
-//         await api.delete(`/tts/${id}`);
-//         setTts(tts.filter((tt) => tt._id !== id));
-//       } catch (err: any) {
-//         alert("Error al eliminar el TT");
-//         console.error("Error al eliminar TT:", err);
-//       }
-//     }
-//   };
-
-//   if (loading) return <div>Cargando...</div>;
-//   if (error) return <div>Error: {error}</div>;
-//   if (!Array.isArray(tts))
-//     return <div>Error: Los datos recibidos no son válidos.</div>;
-
-//   return (
-//     <div>
-//       <h2>Lista de Trabajos de Titulación</h2>
-//       <Link to="/tts/create">Crear Nuevo TT</Link>
-//       <table border={1} cellPadding={10} cellSpacing={0}>
-//         <thead>
-//           <tr>
-//             <th>Título</th>
-//             <th>Autores</th>
-//             <th>Palabras Clave</th>
-//             <th>Unidad Académica</th>
-//             <th>Directores</th>
-//             <th>Grado</th>
-//             <th>Acciones</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {tts.map((tt) => (
-//             <tr key={tt._id}>
-//               <td>{tt.titulo}</td>
-//               <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
-//               <td>{tt.palabrasClave.join(", ")}</td>
-//               <td>{tt.unidadAcademica}</td>
-//               <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
-//               <td>{tt.grado}</td>
-//               <td>
-//                 <Link to={`/tts/edit/${tt._id}`}>Editar</Link> |{" "}
-//                 <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
-//               </td>
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//     </div>
-//   );
-// };
-
-// export default TTList;
-
 // src/components/TT/TTList.tsx
 import React, { useEffect, useState } from "react";
 import TTSearchBar from "./TTSearchBar";
 import api from "../../api/api";
 import { TT } from "../../types/TT";
 import { Link } from "react-router-dom";
+import { TTListResponse } from "../../types/TTListResponse";
 
 const TTList: React.FC = () => {
   const [tts, setTts] = useState<TT[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+
+  useEffect(() => {
+    fetchTTs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit]);
 
   const fetchTTs = async (filters?: any) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get("/tts", { params: filters });
-      // Ajustar si la respuesta trae data: { data: { total, data: [] }}
-      // Por ejemplo:
-      if (response.data && response.data.data && response.data.data.data) {
+      const params = {
+        page,
+        limit,
+        ...filters,
+      };
+      const response = await api.get<TTListResponse>("/tts", { params });
+      if (response.data && response.data.data) {
         setTts(response.data.data.data);
+        setTotal(response.data.data.total);
         console.log("Respuesta de la API:", response.data);
       } else {
         setError("Estructura de respuesta no esperada");
@@ -124,13 +43,11 @@ const TTList: React.FC = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchTTs();
-  }, []);
-
   const handleSearch = (filters: any) => {
+    setPage(1); // Reiniciar a la primera página al buscar
     fetchTTs(filters);
   };
+
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de eliminar este TT?")) {
       try {
@@ -143,6 +60,32 @@ const TTList: React.FC = () => {
     }
   };
 
+  const handleDownload = async (ttId: string) => {
+    try {
+      const res = await api.get(`/tts/${ttId}/download`);
+      // res.data.downloadUrl => la URL firmada
+      window.open(res.data.downloadUrl, "_blank");
+    } catch (error) {
+      console.error("Error al descargar:", error);
+      alert("Error al descargar el PDF");
+    }
+  };
+
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLimit(Number(e.target.value));
+    setPage(1); // Reiniciar a la primera página al cambiar el límite
+  };
+
+  const totalPages = Math.ceil(total / limit);
+
+  const handlePrevPage = () => {
+    if (page > 1) setPage(page - 1);
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) setPage(page + 1);
+  };
+
   if (loading) return <div>Cargando...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -150,6 +93,15 @@ const TTList: React.FC = () => {
     <div>
       <h2>Repositorio de TT</h2>
       <TTSearchBar onSearch={handleSearch} />
+
+      <div style={{ margin: "10px 0" }}>
+        <label>Resultados por página: </label>
+        <select value={limit} onChange={handleLimitChange}>
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+        </select>
+      </div>
 
       <table border={1} cellPadding={10} cellSpacing={0}>
         <thead>
@@ -174,12 +126,28 @@ const TTList: React.FC = () => {
               <td>{tt.grado}</td>
               <td>
                 <Link to={`/tts/edit/${tt._id}`}>Editar</Link> |{" "}
-                <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+                <button onClick={() => handleDelete(tt._id)}>Eliminar</button> |{" "}
+                <button onClick={() => handleDownload(tt._id)}>
+                  Descargar PDF
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Controles de Paginación */}
+      <div style={{ marginTop: "20px" }}>
+        <button onClick={handlePrevPage} disabled={page <= 1}>
+          Anterior
+        </button>
+        <span style={{ margin: "0 10px" }}>
+          Página {page} de {totalPages}
+        </span>
+        <button onClick={handleNextPage} disabled={page >= totalPages}>
+          Siguiente
+        </button>
+      </div>
     </div>
   );
 };

@@ -20,6 +20,7 @@ export interface TT {
   grado: string;
   resumen: string;
   documentoUrl: string;
+  filename?: string;
   fechaPublicacion?: string; // ISO String
   __v?: number;
 }
