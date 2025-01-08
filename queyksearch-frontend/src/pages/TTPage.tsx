@@ -1,6 +1,6 @@
 import React from "react";
-import TTList from "../../components/TT/TTList";
-import TTForm from "../../components/TT/TTForm";
+import TTList from "../components/TT/TTList";
+import TTForm from "../components/TT/TTForm";
 import { Routes, Route } from "react-router-dom";
 
 const TTPage: React.FC = () => {

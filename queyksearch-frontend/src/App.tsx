@@ -1,3 +1,4 @@
+// src/App.tsx
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -5,21 +6,25 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import TTPage from "./pages/TTPage/TTPage";
-import UserPage from "./pages/UserPage/UserPage";
-import LoginPage from "./pages/LoginPage/LoginPage";
 import Navbar from "./components/Navbar";
+import TTPage from "./pages/TTPage";
+import MyProposalsPage from "./pages/MyProposalsPage";
+import LoginPage from "./pages/LoginPage"; // futuro
+import { useAuth } from "./context/AuthContext";
 
 const App: React.FC = () => {
+  const { role } = useAuth();
+
   return (
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/tts" />} />
         <Route path="/tts/*" element={<TTPage />} />
-        <Route path="/users/*" element={<UserPage />} />
-        {/* Añade más rutas según sea necesario */}
+        {role !== "visitor" && (
+          <Route path="/my-proposals" element={<MyProposalsPage />} />
+        )}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </Router>

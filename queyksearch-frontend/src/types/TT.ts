@@ -1,18 +1,25 @@
+export interface Autor {
+  nombreCompleto: string;
+  orcid?: string;
+  _id?: string;
+}
+
+export interface Director {
+  nombreCompleto: string;
+  orcid?: string;
+  _id?: string;
+}
+
 export interface TT {
   _id: string;
   titulo: string;
-  autores: Array<{
-    nombreCompleto: string;
-    orcid?: string;
-  }>;
+  autores: Autor[];
   palabrasClave: string[];
   unidadAcademica: string;
-  directores: Array<{
-    nombreCompleto: string;
-    orcid?: string;
-  }>;
+  directores: Director[];
   grado: string;
   resumen: string;
   documentoUrl: string;
   fechaPublicacion?: string; // ISO String
+  __v?: number;
 }

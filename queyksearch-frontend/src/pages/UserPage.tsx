@@ -1,6 +1,6 @@
 import React from "react";
-import UserList from "../../components/User/UserList";
-import UserForm from "../../components/User/UserForm";
+import UserList from "../components/User/UserList";
+import UserForm from "../components/User/UserForm";
 import { Routes, Route } from "react-router-dom";
 
 const UserPage: React.FC = () => {

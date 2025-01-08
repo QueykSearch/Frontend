@@ -1,0 +1,1196 @@
+===== src/pages/LoginPage.tsx =====
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post("http://localhost:4000/api/v1/login", {
+        email,
+        password,
+      });
+      const token = response.data.token;
+      // Almacenar el token en el almacenamiento local o en cookies
+      localStorage.setItem("token", token);
+      alert("Inicio de sesión exitoso");
+      navigate("/tts");
+    } catch (err: any) {
+      alert("Error al iniciar sesión");
+    }
+  };
+
+  return (
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Contraseña:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Iniciar Sesión</button>
+      </form>
+    </div>
+  );
+};
+
+export default LoginPage;
+-e 
+
+===== src/pages/MyProposalsPage.tsx =====
+import React from "react";
+
+const MyProposalsPage: React.FC = () => {
+  // Static data for now, replace with API integration later
+  const proposals = [
+    { id: 1, title: "Proposal 1", description: "Description for proposal 1" },
+    { id: 2, title: "Proposal 2", description: "Description for proposal 2" },
+    { id: 3, title: "Proposal 3", description: "Description for proposal 3" },
+  ];
+
+  return (
+    <div>
+      <h1>My Proposals</h1>
+      <ul>
+        {proposals.map((proposal) => (
+          <li key={proposal.id}>
+            <h2>{proposal.title}</h2>
+            <p>{proposal.description}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default MyProposalsPage;
+-e 
+
+===== src/pages/UserPage.tsx =====
+import React from "react";
+import UserList from "../components/User/UserList";
+import UserForm from "../components/User/UserForm";
+import { Routes, Route } from "react-router-dom";
+
+const UserPage: React.FC = () => {
+  return (
+    <div>
+      <h1>Gestión de Usuarios</h1>
+      <Routes>
+        <Route path="/" element={<UserList />} />
+        <Route path="/create" element={<UserForm />} />
+        <Route path="/edit/:userId" element={<UserForm />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default UserPage;
+-e 
+
+===== src/pages/TTPage.tsx =====
+import React from "react";
+import TTList from "../components/TT/TTList";
+import TTForm from "../components/TT/TTForm";
+import { Routes, Route } from "react-router-dom";
+
+const TTPage: React.FC = () => {
+  return (
+    <div>
+      <h1>Gestión de Trabajos de Titulación</h1>
+      <Routes>
+        <Route path="/" element={<TTList />} />
+        <Route path="/create" element={<TTForm />} />
+        <Route path="/edit/:ttId" element={<TTForm />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default TTPage;
+-e 
+
+===== src/api/api.ts =====
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:4000/api/v1",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Interceptor para añadir el token JWT a las solicitudes
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+-e 
+
+===== src/react-app-env.d.ts =====
+/// <reference types="react-scripts" />
+-e 
+
+===== src/context/AuthContext.tsx =====
+import React, { createContext, useState, useContext } from "react";
+
+type Role = "visitor" | "user" | "gestor";
+
+interface AuthContextProps {
+  role: Role;
+  setRole: (role: Role) => void;
+}
+
+const AuthContext = createContext<AuthContextProps>({
+  role: "visitor",
+  setRole: () => {},
+});
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [role, setRole] = useState<Role>("visitor");
+
+  return (
+    <AuthContext.Provider value={{ role, setRole }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Helper hook
+export const useAuth = () => useContext(AuthContext);
+-e 
+
+===== src/types/TTSingleResponse.ts =====
+import { TT } from "./TT";
+
+export interface TTSingleResponse {
+  message: string;
+  data: TT;
+}
+-e 
+
+===== src/types/TTListResponse.ts =====
+import { TT } from "./TT";
+
+export interface TTListResponse {
+  message: string;
+  data: {
+    total: number;
+    page: number;
+    limit: number;
+    data: TT[];
+  };
+}
+-e 
+
+===== src/types/TT.ts =====
+export interface Autor {
+  nombreCompleto: string;
+  orcid?: string;
+  _id?: string;
+}
+
+export interface Director {
+  nombreCompleto: string;
+  orcid?: string;
+  _id?: string;
+}
+
+export interface TT {
+  _id: string;
+  titulo: string;
+  autores: Autor[];
+  palabrasClave: string[];
+  unidadAcademica: string;
+  directores: Director[];
+  grado: string;
+  resumen: string;
+  documentoUrl: string;
+  fechaPublicacion?: string; // ISO String
+  __v?: number;
+}
+-e 
+
+===== src/types/User.ts =====
+export interface User {
+  _id: string;
+  nombreCompleto: string;
+  email: string;
+  roles: string[];
+  fechaRegistro: string; // ISO String
+  ultimoLogin?: string; // ISO String
+}
+-e 
+
+===== src/components/Navbar.tsx =====
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const Navbar: React.FC = () => {
+  const { role, setRole } = useAuth();
+
+  const handleRoleChange = (newRole: typeof role) => {
+    setRole(newRole);
+  };
+
+  return (
+    <nav>
+      <ul>
+        <li>
+          <Link to="/tts">TTs</Link>
+        </li>
+        {role !== "visitor" && (
+          <li>
+            <Link to="/my-proposals">Mis Propuestas</Link>
+          </li>
+        )}
+        {role !== "visitor" && (
+          <li>
+            <Link to="/tts/create">Proponer TT</Link>
+          </li>
+        )}
+        <li>
+          <span>Rol Actual: {role}</span>
+          <button onClick={() => handleRoleChange("visitor")}>Visitor</button>
+          <button onClick={() => handleRoleChange("user")}>User</button>
+          <button onClick={() => handleRoleChange("gestor")}>Gestor</button>
+        </li>
+      </ul>
+    </nav>
+  );
+};
+
+export default Navbar;
+-e 
+
+===== src/components/User/UserList.tsx =====
+import React, { useEffect, useState } from "react";
+import { User } from "../../types/User";
+import axios from "axios";
+import { Link } from "react-router-dom";
+
+const UserList: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get<User[]>(
+          "http://localhost:4000/api/v1/users"
+        );
+        setUsers(response.data);
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("¿Estás seguro de eliminar este Usuario?")) {
+      try {
+        await axios.delete(`http://localhost:4000/api/v1/users/${id}`);
+        setUsers(users.filter((user) => user._id !== id));
+      } catch (err: any) {
+        alert("Error al eliminar el Usuario");
+      }
+    }
+  };
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div>
+      <h2>Lista de Usuarios</h2>
+      <Link to="/users/create">Crear Nuevo Usuario</Link>
+      <table border={1} cellPadding={10} cellSpacing={0}>
+        <thead>
+          <tr>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Fecha de Registro</th>
+            <th>Último Login</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user._id}>
+              <td>{user.nombreCompleto}</td>
+              <td>{user.email}</td>
+              <td>{user.roles.join(", ")}</td>
+              <td>{new Date(user.fechaRegistro).toLocaleDateString()}</td>
+              <td>
+                {user.ultimoLogin
+                  ? new Date(user.ultimoLogin).toLocaleDateString()
+                  : "Nunca"}
+              </td>
+              <td>
+                <Link to={`/users/edit/${user._id}`}>Editar</Link> |{" "}
+                <button onClick={() => handleDelete(user._id)}>Eliminar</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default UserList;
+-e 
+
+===== src/components/User/UserForm.tsx =====
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { User } from "../../types/User";
+
+const UserForm: React.FC = () => {
+  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [email, setEmail] = useState("");
+  const [roles, setRoles] = useState<string[]>(["user"]);
+  const [fechaRegistro, setFechaRegistro] = useState("");
+  const [ultimoLogin, setUltimoLogin] = useState("");
+  const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
+
+  useEffect(() => {
+    if (userId) {
+      // Editar Usuario: Obtener datos existentes
+      const fetchUser = async () => {
+        try {
+          const response = await axios.get<User>(
+            `http://localhost:4000/api/v1/users/${userId}`
+          );
+          const user = response.data;
+          setNombreCompleto(user.nombreCompleto);
+          setEmail(user.email);
+          setRoles(user.roles);
+          setFechaRegistro(user.fechaRegistro.substring(0, 10));
+          setUltimoLogin(
+            user.ultimoLogin ? user.ultimoLogin.substring(0, 10) : ""
+          );
+        } catch (err: any) {
+          alert("Error al obtener el Usuario");
+        }
+      };
+
+      fetchUser();
+    }
+  }, [userId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const userData: Partial<User> = {
+      nombreCompleto,
+      email,
+      roles,
+      fechaRegistro: fechaRegistro
+        ? new Date(fechaRegistro).toISOString()
+        : undefined,
+      ultimoLogin: ultimoLogin
+        ? new Date(ultimoLogin).toISOString()
+        : undefined,
+    };
+
+    try {
+      if (userId) {
+        // Actualizar Usuario
+        await axios.put(
+          `http://localhost:4000/api/v1/users/${userId}`,
+          userData
+        );
+        alert("Usuario actualizado con éxito");
+      } else {
+        // Crear Usuario
+        await axios.post("http://localhost:4000/api/v1/users", userData);
+        alert("Usuario creado con éxito");
+      }
+      navigate("/users");
+    } catch (err: any) {
+      alert("Error al guardar el Usuario");
+    }
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(
+      e.target.selectedOptions,
+      (option) => option.value
+    );
+    setRoles(selectedOptions);
+  };
+
+  return (
+    <div>
+      <h2>{userId ? "Editar" : "Crear"} Usuario</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Nombre Completo:</label>
+          <input
+            type="text"
+            value={nombreCompleto}
+            onChange={(e) => setNombreCompleto(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Roles:</label>
+          <select multiple value={roles} onChange={handleRoleChange}>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+            <option value="gestor">Gestor</option>
+            {/* Añade más roles según sea necesario */}
+          </select>
+        </div>
+
+        <div>
+          <label>Fecha de Registro:</label>
+          <input
+            type="date"
+            value={fechaRegistro}
+            onChange={(e) => setFechaRegistro(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label>Último Login:</label>
+          <input
+            type="date"
+            value={ultimoLogin}
+            onChange={(e) => setUltimoLogin(e.target.value)}
+          />
+        </div>
+
+        <button type="submit">{userId ? "Actualizar" : "Crear"} Usuario</button>
+      </form>
+    </div>
+  );
+};
+
+export default UserForm;
+-e 
+
+===== src/components/TT/TTSearchBar.tsx =====
+import React, { useState } from "react";
+
+interface TTSearchProps {
+  onSearch: (filters: any) => void;
+}
+
+const TTSearchBar: React.FC<TTSearchProps> = ({ onSearch }) => {
+  const [titulo, setTitulo] = useState("");
+  const [autor, setAutor] = useState("");
+  const [unidadAcademica, setUnidadAcademica] = useState("");
+  const [grado, setGrado] = useState("");
+  const [palabraClave, setPalabraClave] = useState("");
+  const [anoPublicacion, setAnoPublicacion] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const filters: any = {};
+    if (titulo) filters.titulo = titulo;
+    if (autor) filters.autor = autor;
+    if (unidadAcademica) filters.unidadAcademica = unidadAcademica;
+    if (grado) filters.grado = grado;
+    if (palabraClave) filters.palabrasClave = [palabraClave];
+    if (anoPublicacion) filters.anoPublicacion = Number(anoPublicacion);
+
+    onSearch(filters);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Título"
+        value={titulo}
+        onChange={(e) => setTitulo(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Autor"
+        value={autor}
+        onChange={(e) => setAutor(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Unidad Académica"
+        value={unidadAcademica}
+        onChange={(e) => setUnidadAcademica(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Grado"
+        value={grado}
+        onChange={(e) => setGrado(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Palabra Clave"
+        value={palabraClave}
+        onChange={(e) => setPalabraClave(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Año de Publicación"
+        value={anoPublicacion}
+        onChange={(e) => setAnoPublicacion(e.target.value)}
+      />
+      <button type="submit">Buscar</button>
+      <br />
+      <br />
+    </form>
+  );
+};
+
+export default TTSearchBar;
+-e 
+
+===== src/components/TT/TTForm.tsx =====
+// src/components/TT/TTForm.tsx
+
+import React, { useState, useEffect, FormEvent } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../../api/api"; // Axios config
+import { Autor, Director } from "../../types/TT";
+import { TTSingleResponse } from "../../types/TTSingleResponse";
+
+const TTForm: React.FC = () => {
+  const { ttId } = useParams<{ ttId: string }>();
+  const navigate = useNavigate();
+
+  // Definición de estados con tipos explícitos
+  const [titulo, setTitulo] = useState<string>("");
+  const [autores, setAutores] = useState<Autor[]>([
+    { nombreCompleto: "", orcid: "" },
+  ]);
+  const [palabrasClave, setPalabrasClave] = useState<string[]>([""]);
+  const [unidadAcademica, setUnidadAcademica] = useState<string>("");
+  const [directores, setDirectores] = useState<Director[]>([
+    { nombreCompleto: "", orcid: "" },
+  ]);
+  const [grado, setGrado] = useState<string>("");
+  const [resumen, setResumen] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null); // PDF
+  const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
+
+  // Cargar Datos si es Edición
+  useEffect(() => {
+    if (ttId) {
+      const fetchTT = async () => {
+        try {
+          const response = await api.get<TTSingleResponse>(`/tts/${ttId}`);
+          const tt = response.data.data; // Asumiendo que la respuesta es { message, data: TT }
+
+          setTitulo(tt.titulo || "");
+
+          if (tt.autores && Array.isArray(tt.autores)) {
+            setAutores(
+              tt.autores.map((a) => ({
+                nombreCompleto: a.nombreCompleto || "",
+                orcid: a.orcid || "",
+              }))
+            );
+          }
+
+          if (tt.palabrasClave && Array.isArray(tt.palabrasClave)) {
+            setPalabrasClave(tt.palabrasClave);
+          }
+
+          setUnidadAcademica(tt.unidadAcademica || "");
+
+          if (tt.directores && Array.isArray(tt.directores)) {
+            setDirectores(
+              tt.directores.map((d) => ({
+                nombreCompleto: d.nombreCompleto || "",
+                orcid: d.orcid || "",
+              }))
+            );
+          }
+
+          setGrado(tt.grado || "");
+          setResumen(tt.resumen || "");
+
+          if (tt.fechaPublicacion) {
+            setFechaPublicacion(tt.fechaPublicacion.substring(0, 10));
+          }
+        } catch (error) {
+          console.error("Error al obtener el TT:", error);
+          alert("Error al obtener el TT");
+        }
+      };
+      fetchTT();
+    }
+  }, [ttId]);
+
+  // Manejo de Autores
+  const handleAutorChange = (
+    index: number,
+    field: keyof Autor,
+    value: string
+  ) => {
+    const newAutores = [...autores];
+    newAutores[index][field] = value;
+    setAutores(newAutores);
+  };
+  const addAutor = () => {
+    setAutores([...autores, { nombreCompleto: "", orcid: "" }]);
+  };
+  const removeAutor = (index: number) => {
+    const newAutores = [...autores];
+    newAutores.splice(index, 1);
+    setAutores(newAutores);
+  };
+
+  // Manejo de Directores
+  const handleDirectorChange = (
+    index: number,
+    field: keyof Director,
+    value: string
+  ) => {
+    const newDirectores = [...directores];
+    newDirectores[index][field] = value;
+    setDirectores(newDirectores);
+  };
+  const addDirector = () => {
+    setDirectores([...directores, { nombreCompleto: "", orcid: "" }]);
+  };
+  const removeDirector = (index: number) => {
+    const newDirectores = [...directores];
+    newDirectores.splice(index, 1);
+    setDirectores(newDirectores);
+  };
+
+  // Manejo de Palabras Clave
+  const handlePalabraClaveChange = (index: number, value: string) => {
+    const newPC = [...palabrasClave];
+    newPC[index] = value;
+    setPalabrasClave(newPC);
+  };
+  const addPalabraClave = () => {
+    setPalabrasClave([...palabrasClave, ""]);
+  };
+  const removePalabraClave = (index: number) => {
+    const newPC = [...palabrasClave];
+    newPC.splice(index, 1);
+    setPalabrasClave(newPC);
+  };
+
+  // Manejar la subida de archivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  // Enviar el formulario en `form-data`
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    // Crear `FormData`
+    const formData = new FormData();
+
+    // Subida de archivo PDF
+    if (file) formData.append("file", file);
+
+    // Los campos simples, como título, grado, resumen
+    formData.append("titulo", titulo);
+    formData.append("unidadAcademica", unidadAcademica);
+    formData.append("grado", grado);
+    formData.append("resumen", resumen);
+
+    // Convertimos a JSON las estructuras complejas
+    formData.append("autores", JSON.stringify(autores));
+    formData.append("directores", JSON.stringify(directores));
+    formData.append("palabrasClave", JSON.stringify(palabrasClave));
+
+    if (fechaPublicacion) {
+      formData.append("fechaPublicacion", fechaPublicacion);
+    }
+
+    // Depuración: Ver qué se está enviando
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
+
+    try {
+      if (ttId) {
+        // Actualizar TT
+        await api.put(`/tts/${ttId}`, formData, {
+          headers: { "Content-Type": "application/json" },
+        });
+        alert("TT actualizado con éxito");
+      } else {
+        // Crear TT
+        await api.post("/tts", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        alert("TT creado con éxito");
+      }
+      navigate("/tts");
+    } catch (err) {
+      console.error("Error al guardar el TT:", err);
+      alert("Error al guardar el TT");
+    }
+  };
+
+  return (
+    <div>
+      <h2>{ttId ? "Editar" : "Crear"} Trabajo de Titulación</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Título:</label>
+          <input
+            type="text"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Autores */}
+        <div>
+          <label>Autores:</label>
+          {autores.map((autor, index) => (
+            <div key={index}>
+              <input
+                type="text"
+                placeholder="Nombre Completo"
+                value={autor.nombreCompleto}
+                onChange={(e) =>
+                  handleAutorChange(index, "nombreCompleto", e.target.value)
+                }
+                required
+              />
+              <input
+                type="text"
+                placeholder="ORCID (Opcional)"
+                value={autor.orcid}
+                onChange={(e) =>
+                  handleAutorChange(index, "orcid", e.target.value)
+                }
+              />
+              {autores.length > 1 && (
+                <button type="button" onClick={() => removeAutor(index)}>
+                  Eliminar
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addAutor}>
+            + Autor
+          </button>
+        </div>
+
+        {/* Palabras Clave */}
+        <div>
+          <label>Palabras Clave:</label>
+          {palabrasClave.map((pc, idx) => (
+            <div key={idx}>
+              <input
+                type="text"
+                value={pc}
+                onChange={(e) => handlePalabraClaveChange(idx, e.target.value)}
+                required={idx === 0}
+              />
+              {palabrasClave.length > 1 && (
+                <button type="button" onClick={() => removePalabraClave(idx)}>
+                  Eliminar
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addPalabraClave}>
+            + Palabra Clave
+          </button>
+        </div>
+
+        <div>
+          <label>Unidad Académica:</label>
+          <input
+            type="text"
+            value={unidadAcademica}
+            onChange={(e) => setUnidadAcademica(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Directores */}
+        <div>
+          <label>Directores:</label>
+          {directores.map((director, index) => (
+            <div key={index}>
+              <input
+                type="text"
+                placeholder="Nombre Completo"
+                value={director.nombreCompleto}
+                onChange={(e) =>
+                  handleDirectorChange(index, "nombreCompleto", e.target.value)
+                }
+                required
+              />
+              <input
+                type="text"
+                placeholder="ORCID (Opcional)"
+                value={director.orcid}
+                onChange={(e) =>
+                  handleDirectorChange(index, "orcid", e.target.value)
+                }
+              />
+              {directores.length > 1 && (
+                <button type="button" onClick={() => removeDirector(index)}>
+                  Eliminar
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addDirector}>
+            + Director
+          </button>
+        </div>
+
+        <div>
+          <label>Grado:</label>
+          <input
+            type="text"
+            value={grado}
+            onChange={(e) => setGrado(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Resumen:</label>
+          <textarea
+            value={resumen}
+            onChange={(e) => setResumen(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Subida de PDF */}
+        <div>
+          <label>Archivo PDF del TT:</label>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* Fecha de Publicación (opcional) */}
+        <div>
+          <label>Fecha de Publicación:</label>
+          <input
+            type="date"
+            value={fechaPublicacion}
+            onChange={(e) => setFechaPublicacion(e.target.value)}
+          />
+        </div>
+
+        <button type="submit">{ttId ? "Actualizar" : "Crear"} TT</button>
+      </form>
+    </div>
+  );
+};
+
+export default TTForm;
+-e 
+
+===== src/components/TT/TTList.tsx =====
+// import React, { useEffect, useState } from "react";
+// import { TT } from "../../types/TT";
+// import { TTListResponse } from "../../types/TTListResponse";
+// import api from "../../api/api";
+// import { Link } from "react-router-dom";
+
+// const TTList: React.FC = () => {
+//   const [tts, setTts] = useState<TT[]>([]);
+//   const [loading, setLoading] = useState<boolean>(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     const fetchTTs = async () => {
+//       try {
+//         const response = await api.get<TTListResponse>("/tts");
+//         console.log("Respuesta de la API:", response.data);
+
+//         // Acceder al arreglo de TTs correctamente
+//         if (
+//           response.data &&
+//           response.data.data &&
+//           Array.isArray(response.data.data.data)
+//         ) {
+//           setTts(response.data.data.data);
+//         } else {
+//           setError("La respuesta de la API no contiene un arreglo de TT.");
+//         }
+
+//         setLoading(false);
+//       } catch (err: any) {
+//         console.error("Error al obtener TT:", err);
+//         setError(err.message || "Error desconocido al obtener TT.");
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchTTs();
+//   }, []);
+
+//   const handleDelete = async (id: string) => {
+//     if (window.confirm("¿Estás seguro de eliminar este TT?")) {
+//       try {
+//         await api.delete(`/tts/${id}`);
+//         setTts(tts.filter((tt) => tt._id !== id));
+//       } catch (err: any) {
+//         alert("Error al eliminar el TT");
+//         console.error("Error al eliminar TT:", err);
+//       }
+//     }
+//   };
+
+//   if (loading) return <div>Cargando...</div>;
+//   if (error) return <div>Error: {error}</div>;
+//   if (!Array.isArray(tts))
+//     return <div>Error: Los datos recibidos no son válidos.</div>;
+
+//   return (
+//     <div>
+//       <h2>Lista de Trabajos de Titulación</h2>
+//       <Link to="/tts/create">Crear Nuevo TT</Link>
+//       <table border={1} cellPadding={10} cellSpacing={0}>
+//         <thead>
+//           <tr>
+//             <th>Título</th>
+//             <th>Autores</th>
+//             <th>Palabras Clave</th>
+//             <th>Unidad Académica</th>
+//             <th>Directores</th>
+//             <th>Grado</th>
+//             <th>Acciones</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           {tts.map((tt) => (
+//             <tr key={tt._id}>
+//               <td>{tt.titulo}</td>
+//               <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
+//               <td>{tt.palabrasClave.join(", ")}</td>
+//               <td>{tt.unidadAcademica}</td>
+//               <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
+//               <td>{tt.grado}</td>
+//               <td>
+//                 <Link to={`/tts/edit/${tt._id}`}>Editar</Link> |{" "}
+//                 <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+//               </td>
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// };
+
+// export default TTList;
+
+// src/components/TT/TTList.tsx
+import React, { useEffect, useState } from "react";
+import TTSearchBar from "./TTSearchBar";
+import api from "../../api/api";
+import { TT } from "../../types/TT";
+import { Link } from "react-router-dom";
+
+const TTList: React.FC = () => {
+  const [tts, setTts] = useState<TT[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTTs = async (filters?: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get("/tts", { params: filters });
+      // Ajustar si la respuesta trae data: { data: { total, data: [] }}
+      // Por ejemplo:
+      if (response.data && response.data.data && response.data.data.data) {
+        setTts(response.data.data.data);
+        console.log("Respuesta de la API:", response.data);
+      } else {
+        setError("Estructura de respuesta no esperada");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchTTs();
+  }, []);
+
+  const handleSearch = (filters: any) => {
+    fetchTTs(filters);
+  };
+  const handleDelete = async (id: string) => {
+    if (window.confirm("¿Estás seguro de eliminar este TT?")) {
+      try {
+        await api.delete(`/tts/${id}`);
+        setTts(tts.filter((tt) => tt._id !== id));
+      } catch (err: any) {
+        alert("Error al eliminar el TT");
+        console.error("Error al eliminar TT:", err);
+      }
+    }
+  };
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div>
+      <h2>Repositorio de TT</h2>
+      <TTSearchBar onSearch={handleSearch} />
+
+      <table border={1} cellPadding={10} cellSpacing={0}>
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Autores</th>
+            <th>Palabras Clave</th>
+            <th>Unidad Académica</th>
+            <th>Directores</th>
+            <th>Grado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tts.map((tt) => (
+            <tr key={tt._id}>
+              <td>{tt.titulo}</td>
+              <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
+              <td>{tt.palabrasClave.join(", ")}</td>
+              <td>{tt.unidadAcademica}</td>
+              <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
+              <td>{tt.grado}</td>
+              <td>
+                <Link to={`/tts/edit/${tt._id}`}>Editar</Link> |{" "}
+                <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default TTList;
+-e 
+
+===== src/logo.svg =====
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3"><g fill="#61DAFB"><path d="M666.3 296.5c0-32.5-40.7-63.3-103.1-82.4 14.4-63.6 8-114.2-20.2-130.4-6.5-3.8-14.1-5.6-22.4-5.6v22.3c4.6 0 8.3.9 11.4 2.6 13.6 7.8 19.5 37.5 14.9 75.7-1.1 9.4-2.9 19.3-5.1 29.4-19.6-4.8-41-8.5-63.5-10.9-13.5-18.5-27.5-35.3-41.6-50 32.6-30.3 63.2-46.9 84-46.9V78c-27.5 0-63.5 19.6-99.9 53.6-36.4-33.8-72.4-53.2-99.9-53.2v22.3c20.7 0 51.4 16.5 84 46.6-14 14.7-28 31.4-41.3 49.9-22.6 2.4-44 6.1-63.6 11-2.3-10-4-19.7-5.2-29-4.7-38.2 1.1-67.9 14.6-75.8 3-1.8 6.9-2.6 11.5-2.6V78.5c-8.4 0-16 1.8-22.6 5.6-28.1 16.2-34.4 66.7-19.9 130.1-62.2 19.2-102.7 49.9-102.7 82.3 0 32.5 40.7 63.3 103.1 82.4-14.4 63.6-8 114.2 20.2 130.4 6.5 3.8 14.1 5.6 22.5 5.6 27.5 0 63.5-19.6 99.9-53.6 36.4 33.8 72.4 53.2 99.9 53.2 8.4 0 16-1.8 22.6-5.6 28.1-16.2 34.4-66.7 19.9-130.1 62-19.1 102.5-49.9 102.5-82.3zm-130.2-66.7c-3.7 12.9-8.3 26.2-13.5 39.5-4.1-8-8.4-16-13.1-24-4.6-8-9.5-15.8-14.4-23.4 14.2 2.1 27.9 4.7 41 7.9zm-45.8 106.5c-7.8 13.5-15.8 26.3-24.1 38.2-14.9 1.3-30 2-45.2 2-15.1 0-30.2-.7-45-1.9-8.3-11.9-16.4-24.6-24.2-38-7.6-13.1-14.5-26.4-20.8-39.8 6.2-13.4 13.2-26.8 20.7-39.9 7.8-13.5 15.8-26.3 24.1-38.2 14.9-1.3 30-2 45.2-2 15.1 0 30.2.7 45 1.9 8.3 11.9 16.4 24.6 24.2 38 7.6 13.1 14.5 26.4 20.8 39.8-6.3 13.4-13.2 26.8-20.7 39.9zm32.3-13c5.4 13.4 10 26.8 13.8 39.8-13.1 3.2-26.9 5.9-41.2 8 4.9-7.7 9.8-15.6 14.4-23.7 4.6-8 8.9-16.1 13-24.1zM421.2 430c-9.3-9.6-18.6-20.3-27.8-32 9 .4 18.2.7 27.5.7 9.4 0 18.7-.2 27.8-.7-9 11.7-18.3 22.4-27.5 32zm-74.4-58.9c-14.2-2.1-27.9-4.7-41-7.9 3.7-12.9 8.3-26.2 13.5-39.5 4.1 8 8.4 16 13.1 24 4.7 8 9.5 15.8 14.4 23.4zM420.7 163c9.3 9.6 18.6 20.3 27.8 32-9-.4-18.2-.7-27.5-.7-9.4 0-18.7.2-27.8.7 9-11.7 18.3-22.4 27.5-32zm-74 58.9c-4.9 7.7-9.8 15.6-14.4 23.7-4.6 8-8.9 16-13 24-5.4-13.4-10-26.8-13.8-39.8 13.1-3.1 26.9-5.8 41.2-7.9zm-90.5 125.2c-35.4-15.1-58.3-34.9-58.3-50.6 0-15.7 22.9-35.6 58.3-50.6 8.6-3.7 18-7 27.7-10.1 5.7 19.6 13.2 40 22.5 60.9-9.2 20.8-16.6 41.1-22.2 60.6-9.9-3.1-19.3-6.5-28-10.2zM310 490c-13.6-7.8-19.5-37.5-14.9-75.7 1.1-9.4 2.9-19.3 5.1-29.4 19.6 4.8 41 8.5 63.5 10.9 13.5 18.5 27.5 35.3 41.6 50-32.6 30.3-63.2 46.9-84 46.9-4.5-.1-8.3-1-11.3-2.7zm237.2-76.2c4.7 38.2-1.1 67.9-14.6 75.8-3 1.8-6.9 2.6-11.5 2.6-20.7 0-51.4-16.5-84-46.6 14-14.7 28-31.4 41.3-49.9 22.6-2.4 44-6.1 63.6-11 2.3 10.1 4.1 19.8 5.2 29.1zm38.5-66.7c-8.6 3.7-18 7-27.7 10.1-5.7-19.6-13.2-40-22.5-60.9 9.2-20.8 16.6-41.1 22.2-60.6 9.9 3.1 19.3 6.5 28.1 10.2 35.4 15.1 58.3 34.9 58.3 50.6-.1 15.7-23 35.6-58.4 50.6zM320.8 78.4z"/><circle cx="420.9" cy="296.5" r="45.7"/><path d="M520.5 78.1z"/></g></svg>-e 
+
+===== src/index.tsx =====
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
+
+const root = ReactDOM.createRoot(document.getElementById("root")!);
+root.render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
+-e 
+
+===== src/App.tsx =====
+// src/App.tsx
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import Navbar from "./components/Navbar";
+import TTPage from "./pages/TTPage";
+import MyProposalsPage from "./pages/MyProposalsPage";
+import LoginPage from "./pages/LoginPage"; // futuro
+import { useAuth } from "./context/AuthContext";
+
+const App: React.FC = () => {
+  const { role } = useAuth();
+
+  return (
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Navigate to="/tts" />} />
+        <Route path="/tts/*" element={<TTPage />} />
+        {role !== "visitor" && (
+          <Route path="/my-proposals" element={<MyProposalsPage />} />
+        )}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
+-e 
+

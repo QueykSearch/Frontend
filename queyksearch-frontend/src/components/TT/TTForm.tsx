@@ -1,136 +1,203 @@
-import React, { useState, useEffect } from "react";
+// src/components/TT/TTForm.tsx
+
+import React, { useState, useEffect, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
-import { TT } from "../../types/TT";
+import api from "../../api/api"; // Axios config
+import { Autor, Director } from "../../types/TT";
+import { TTSingleResponse } from "../../types/TTSingleResponse";
 
 const TTForm: React.FC = () => {
-  const [titulo, setTitulo] = useState("");
-  const [autores, setAutores] = useState([{ nombreCompleto: "", orcid: "" }]);
-  const [palabrasClave, setPalabrasClave] = useState<string[]>([""]);
-  const [unidadAcademica, setUnidadAcademica] = useState("");
-  const [directores, setDirectores] = useState([
+  const { ttId } = useParams<{ ttId: string }>();
+  const navigate = useNavigate();
+
+  // Definición de estados con tipos explícitos
+  const [titulo, setTitulo] = useState<string>("");
+  const [autores, setAutores] = useState<Autor[]>([
     { nombreCompleto: "", orcid: "" },
   ]);
-  const [grado, setGrado] = useState("");
-  const [resumen, setResumen] = useState("");
-  const [documentoUrl, setDocumentoUrl] = useState("");
-  const [fechaPublicacion, setFechaPublicacion] = useState("");
-  const navigate = useNavigate();
-  const { ttId } = useParams<{ ttId: string }>();
+  const [palabrasClave, setPalabrasClave] = useState<string[]>([""]);
+  const [unidadAcademica, setUnidadAcademica] = useState<string>("");
+  const [directores, setDirectores] = useState<Director[]>([
+    { nombreCompleto: "", orcid: "" },
+  ]);
+  const [grado, setGrado] = useState<string>("");
+  const [resumen, setResumen] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null); // PDF
+  const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
 
+  // Cargar Datos si es Edición
   useEffect(() => {
     if (ttId) {
-      // Editar TT: Obtener datos existentes
       const fetchTT = async () => {
         try {
-          const response = await axios.get<TT>(
-            `http://localhost:4000/api/v1/tts/${ttId}`
-          );
-          const tt = response.data;
-          setTitulo(tt.titulo);
-          //   setAutores(tt.autores);
-          setPalabrasClave(tt.palabrasClave);
-          setUnidadAcademica(tt.unidadAcademica);
-          //   setDirectores(tt.directores);
-          setGrado(tt.grado);
-          setResumen(tt.resumen);
-          setDocumentoUrl(tt.documentoUrl);
-          setFechaPublicacion(
-            tt.fechaPublicacion ? tt.fechaPublicacion.substring(0, 10) : ""
-          );
-        } catch (err: any) {
+          const response = await api.get<TTSingleResponse>(`/tts/${ttId}`);
+          const tt = response.data.data; // Asumiendo que la respuesta es { message, data: TT }
+
+          setTitulo(tt.titulo || "");
+
+          if (tt.autores && Array.isArray(tt.autores)) {
+            setAutores(
+              tt.autores.map((a) => ({
+                nombreCompleto: a.nombreCompleto || "",
+                orcid: a.orcid || "",
+              }))
+            );
+          }
+
+          if (tt.palabrasClave && Array.isArray(tt.palabrasClave)) {
+            setPalabrasClave(tt.palabrasClave);
+          }
+
+          setUnidadAcademica(tt.unidadAcademica || "");
+
+          if (tt.directores && Array.isArray(tt.directores)) {
+            setDirectores(
+              tt.directores.map((d) => ({
+                nombreCompleto: d.nombreCompleto || "",
+                orcid: d.orcid || "",
+              }))
+            );
+          }
+
+          setGrado(tt.grado || "");
+          setResumen(tt.resumen || "");
+
+          if (tt.fechaPublicacion) {
+            setFechaPublicacion(tt.fechaPublicacion.substring(0, 10));
+          }
+        } catch (error) {
+          console.error("Error al obtener el TT:", error);
           alert("Error al obtener el TT");
         }
       };
-
       fetchTT();
     }
   }, [ttId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const ttData: Partial<TT> = {
-      titulo,
-      autores,
-      palabrasClave,
-      unidadAcademica,
-      directores,
-      grado,
-      resumen,
-      documentoUrl,
-      fechaPublicacion: fechaPublicacion
-        ? new Date(fechaPublicacion).toISOString()
-        : undefined,
-    };
-
-    try {
-      if (ttId) {
-        // Actualizar TT
-        await axios.put(`http://localhost:4000/api/v1/tts/${ttId}`, ttData);
-        alert("TT actualizado con éxito");
-      } else {
-        // Crear TT
-        await axios.post("http://localhost:4000/api/v1/tts", ttData);
-        alert("TT creado con éxito");
-      }
-      navigate("/tts");
-    } catch (err: any) {
-      alert("Error al guardar el TT");
-    }
-  };
-
-  // Funciones para manejar autores y directores dinámicos
-  const handleAutorChange = (index: number, field: string, value: string) => {
+  // Manejo de Autores
+  const handleAutorChange = (
+    index: number,
+    field: keyof Autor,
+    value: string
+  ) => {
     const newAutores = [...autores];
-    (newAutores[index] as any)[field] = value;
+    newAutores[index][field] = value;
     setAutores(newAutores);
   };
-
   const addAutor = () => {
     setAutores([...autores, { nombreCompleto: "", orcid: "" }]);
   };
-
   const removeAutor = (index: number) => {
     const newAutores = [...autores];
     newAutores.splice(index, 1);
     setAutores(newAutores);
   };
 
+  // Manejo de Directores
   const handleDirectorChange = (
     index: number,
-    field: string,
+    field: keyof Director,
     value: string
   ) => {
     const newDirectores = [...directores];
-    (newDirectores[index] as any)[field] = value;
+    newDirectores[index][field] = value;
     setDirectores(newDirectores);
   };
-
   const addDirector = () => {
     setDirectores([...directores, { nombreCompleto: "", orcid: "" }]);
   };
-
   const removeDirector = (index: number) => {
     const newDirectores = [...directores];
     newDirectores.splice(index, 1);
     setDirectores(newDirectores);
   };
 
+  // Manejo de Palabras Clave
   const handlePalabraClaveChange = (index: number, value: string) => {
-    const newPalabrasClave = [...palabrasClave];
-    newPalabrasClave[index] = value;
-    setPalabrasClave(newPalabrasClave);
+    const newPC = [...palabrasClave];
+    newPC[index] = value;
+    setPalabrasClave(newPC);
   };
-
   const addPalabraClave = () => {
     setPalabrasClave([...palabrasClave, ""]);
   };
-
   const removePalabraClave = (index: number) => {
-    const newPalabrasClave = [...palabrasClave];
-    newPalabrasClave.splice(index, 1);
-    setPalabrasClave(newPalabrasClave);
+    const newPC = [...palabrasClave];
+    newPC.splice(index, 1);
+    setPalabrasClave(newPC);
+  };
+
+  // Manejar la subida de archivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  // Enviar el formulario en `form-data`
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    // Crear `FormData`
+    const formData = new FormData();
+
+    // Subida de archivo PDF
+    if (file) formData.append("file", file);
+
+    // Los campos simples, como título, grado, resumen
+    formData.append("titulo", titulo);
+    formData.append("unidadAcademica", unidadAcademica);
+    formData.append("grado", grado);
+    formData.append("resumen", resumen);
+
+    // Convertimos a JSON las estructuras complejas
+    formData.append("autores", JSON.stringify(autores));
+    formData.append("directores", JSON.stringify(directores));
+    formData.append("palabrasClave", JSON.stringify(palabrasClave));
+
+    if (fechaPublicacion) {
+      formData.append("fechaPublicacion", fechaPublicacion);
+    }
+
+    // Depuración: Ver qué se está enviando
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
+
+    try {
+      if (ttId) {
+        // Actualizar TT
+        // convertir a JSON formData
+        const jsonData = {
+          titulo,
+          unidadAcademica,
+          grado,
+          resumen,
+          autores,
+          directores,
+          palabrasClave,
+          fechaPublicacion,
+        };
+
+        await api.put(`/tts/${ttId}`, jsonData, {
+          headers: { "Content-Type": "application/json" },
+        });
+
+        // await api.put(`/tts/${ttId}`, formData);
+
+        alert("TT actualizado con éxito");
+      } else {
+        // Crear TT
+        await api.post("/tts", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        alert("TT creado con éxito");
+      }
+      navigate("/tts");
+    } catch (err) {
+      console.error("Error al guardar el TT:", err);
+      alert("Error al guardar el TT");
+    }
   };
 
   return (
@@ -147,6 +214,7 @@ const TTForm: React.FC = () => {
           />
         </div>
 
+        {/* Autores */}
         <div>
           <label>Autores:</label>
           {autores.map((autor, index) => (
@@ -176,31 +244,30 @@ const TTForm: React.FC = () => {
             </div>
           ))}
           <button type="button" onClick={addAutor}>
-            Añadir Autor
+            + Autor
           </button>
         </div>
 
+        {/* Palabras Clave */}
         <div>
           <label>Palabras Clave:</label>
-          {palabrasClave.map((palabra, index) => (
-            <div key={index}>
+          {palabrasClave.map((pc, idx) => (
+            <div key={idx}>
               <input
                 type="text"
-                value={palabra}
-                onChange={(e) =>
-                  handlePalabraClaveChange(index, e.target.value)
-                }
-                required
+                value={pc}
+                onChange={(e) => handlePalabraClaveChange(idx, e.target.value)}
+                required={idx === 0}
               />
               {palabrasClave.length > 1 && (
-                <button type="button" onClick={() => removePalabraClave(index)}>
+                <button type="button" onClick={() => removePalabraClave(idx)}>
                   Eliminar
                 </button>
               )}
             </div>
           ))}
           <button type="button" onClick={addPalabraClave}>
-            Añadir Palabra Clave
+            + Palabra Clave
           </button>
         </div>
 
@@ -214,6 +281,7 @@ const TTForm: React.FC = () => {
           />
         </div>
 
+        {/* Directores */}
         <div>
           <label>Directores:</label>
           {directores.map((director, index) => (
@@ -243,7 +311,7 @@ const TTForm: React.FC = () => {
             </div>
           ))}
           <button type="button" onClick={addDirector}>
-            Añadir Director
+            + Director
           </button>
         </div>
 
@@ -263,19 +331,20 @@ const TTForm: React.FC = () => {
             value={resumen}
             onChange={(e) => setResumen(e.target.value)}
             required
-          ></textarea>
-        </div>
-
-        <div>
-          <label>URL del Documento:</label>
-          <input
-            type="url"
-            value={documentoUrl}
-            onChange={(e) => setDocumentoUrl(e.target.value)}
-            required
           />
         </div>
 
+        {/* Subida de PDF */}
+        <div>
+          <label>Archivo PDF del TT:</label>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* Fecha de Publicación (opcional) */}
         <div>
           <label>Fecha de Publicación:</label>
           <input
