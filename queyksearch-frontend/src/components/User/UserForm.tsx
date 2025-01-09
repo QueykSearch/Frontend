@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { User } from "../../types/User";
+import {Role, User} from "../../types/User";
+import api from "../../api/api";
 
 const UserForm: React.FC = () => {
   const [nombreCompleto, setNombreCompleto] = useState("");
   const [email, setEmail] = useState("");
-  const [roles, setRoles] = useState<string[]>(["user"]);
-  const [fechaRegistro, setFechaRegistro] = useState("");
-  const [ultimoLogin, setUltimoLogin] = useState("");
+  const [roles, setRoles] = useState<Role[]>(["user"]);
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
 
@@ -17,23 +16,19 @@ const UserForm: React.FC = () => {
       // Editar Usuario: Obtener datos existentes
       const fetchUser = async () => {
         try {
-          const response = await axios.get<User>(
-            `http://localhost:4000/api/v1/users/${userId}`
+          const response = await api.get<User>(
+            `/users/${userId}`
           );
           const user = response.data;
           setNombreCompleto(user.nombreCompleto);
           setEmail(user.email);
           setRoles(user.roles);
-          setFechaRegistro(user.fechaRegistro.substring(0, 10));
-          setUltimoLogin(
-            user.ultimoLogin ? user.ultimoLogin.substring(0, 10) : ""
-          );
         } catch (err: any) {
           alert("Error al obtener el Usuario");
         }
       };
 
-      fetchUser();
+      void fetchUser();
     }
   }, [userId]);
 
@@ -44,12 +39,6 @@ const UserForm: React.FC = () => {
       nombreCompleto,
       email,
       roles,
-      fechaRegistro: fechaRegistro
-        ? new Date(fechaRegistro).toISOString()
-        : undefined,
-      ultimoLogin: ultimoLogin
-        ? new Date(ultimoLogin).toISOString()
-        : undefined,
     };
 
     try {
@@ -69,14 +58,6 @@ const UserForm: React.FC = () => {
     } catch (err: any) {
       alert("Error al guardar el Usuario");
     }
-  };
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(
-      e.target.selectedOptions,
-      (option) => option.value
-    );
-    setRoles(selectedOptions);
   };
 
   return (
@@ -100,34 +81,6 @@ const UserForm: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-          />
-        </div>
-
-        <div>
-          <label>Roles:</label>
-          <select multiple value={roles} onChange={handleRoleChange}>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-            <option value="gestor">Gestor</option>
-            {/* Añade más roles según sea necesario */}
-          </select>
-        </div>
-
-        <div>
-          <label>Fecha de Registro:</label>
-          <input
-            type="date"
-            value={fechaRegistro}
-            onChange={(e) => setFechaRegistro(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label>Último Login:</label>
-          <input
-            type="date"
-            value={ultimoLogin}
-            onChange={(e) => setUltimoLogin(e.target.value)}
           />
         </div>
 

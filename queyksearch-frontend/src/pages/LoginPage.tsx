@@ -1,36 +1,56 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import api from "../api/api";
+import {useNavigate} from "react-router-dom";
+import {useAuth} from "../context/AuthContext";
 
-const LoginPage: React.FC = () => {
+function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const authContext = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (event: { preventDefault: () => void; }) => {
+    event.preventDefault();
+    setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:4000/api/v1/login", {
+      const response = await api.post("/login", {
         email,
         password,
       });
-      const token = response.data.token;
-      // Almacenar el token en el almacenamiento local o en cookies
-      localStorage.setItem("token", token);
-      alert("Inicio de sesión exitoso");
+
+      const {accessToken, refreshToken, expiresAt, user} = response.data.data;
+
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("expiresAt", expiresAt);
+
+      console.log("Inicio de sesión exitoso para el usuario:", user);
+
+      authContext.setUser(user);
+      authContext.setAuthenticated(true);
+
       navigate("/tts");
-    } catch (err: any) {
-      alert("Error al iniciar sesión");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setErrorMsg(error.response?.data?.message || "Error al iniciar sesión");
+      } else {
+        setErrorMsg("Error desconocido");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{maxWidth: 400, margin: "0 auto"}}>
+      <h1>Iniciar Sesión</h1>
+      <form onSubmit={handleLogin}>
         <div>
-          <label>Email:</label>
+          <label>Email</label>
           <input
             type="email"
             value={email}
@@ -38,8 +58,9 @@ const LoginPage: React.FC = () => {
             required
           />
         </div>
+
         <div>
-          <label>Contraseña:</label>
+          <label>Contraseña</label>
           <input
             type="password"
             value={password}
@@ -47,10 +68,17 @@ const LoginPage: React.FC = () => {
             required
           />
         </div>
-        <button type="submit">Iniciar Sesión</button>
+
+        {errorMsg && (
+          <div style={{color: "red", marginTop: 8}}>{errorMsg}</div>
+        )}
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Cargando..." : "Ingresar"}
+        </button>
       </form>
     </div>
   );
-};
+}
 
 export default LoginPage;
