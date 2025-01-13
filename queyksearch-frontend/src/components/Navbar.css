@@ -33,11 +33,11 @@ body {
 }
 
 .navbar-logo .navbar-logo__queyk {
-  color: #6C47BB; /* Brand primario */
+  color: #6c47bb; /* Brand primario */
 }
 
 .navbar-logo .navbar-logo__search {
-  color: #3B8BBC; /* Brand secundario */
+  color: #3b8bbc; /* Brand secundario */
 }
 
 /* Lista de navegación */
@@ -62,7 +62,7 @@ body {
 
 /* Botón de cerrar sesión, login, etc. */
 .navbar-menu li button {
-  background-color: #6C47BB; /* Brand primario */
+  background-color: #6c47bb; /* Brand primario */
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -75,4 +75,87 @@ body {
 
 .navbar-menu li button:hover {
   opacity: 0.8;
+}
+
+.navbar-toggle {
+  display: none; /* Oculto por defecto */
+  flex-direction: column;
+  justify-content: space-between;
+  width: 25px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar-toggle .bar {
+  height: 3px;
+  width: 100%;
+  background-color: #434343;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Animación cuando el menú está abierto */
+.navbar-toggle.open .bar:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.navbar-toggle.open .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-toggle.open .bar:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Media Queries para Responsividad */
+@media (max-width: 768px) {
+  /* Mostrar el botón del menú hamburguesa */
+  .navbar-toggle {
+    display: flex;
+  }
+
+  /* Ocultar el menú de navegación por defecto */
+  .navbar-menu {
+    position: absolute;
+    top: 60px; /* Ajusta según la altura de tu navbar */
+    right: 0;
+    background-color: #fff;
+    width: 200px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  /* Mostrar el menú cuando está activo */
+  .navbar-menu.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Estilos para los enlaces dentro del menú móvil */
+  .navbar-menu li {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .navbar-menu li:last-child {
+    margin-bottom: 0;
+  }
+
+  .navbar-menu li a,
+  .navbar-menu li button {
+    width: 100%;
+    text-align: left;
+  }
 }
