@@ -18,7 +18,7 @@ const App: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <Router>
+    <Router basename={process.env.REACT_APP_API_URL}>
       <Navbar />
       <Routes>
         {/* Ruta base: redirige a /tts */}

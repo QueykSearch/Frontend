@@ -27,6 +27,8 @@ jobs:
 
       - name: Build the React app
         working-directory: ./queyksearch-frontend
+        env:
+          REACT_APP_API_URL: /Frontend
         run: yarn build
 
       - name: Deploy to GitHub Pages
