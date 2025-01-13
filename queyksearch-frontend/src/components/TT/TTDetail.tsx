@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TT } from "../../types/TT";
-import { useParams } from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
 import "./TTDetail.css"; // Importa el CSS
@@ -107,7 +107,7 @@ const TTDetail: React.FC = () => {
         <ul className="ttdetail-similar-list">
           {similarTTs.slice(1).map((similarTT) => (
             <li key={similarTT._id}>
-              <a href={`/tts/view/${similarTT._id}`}>{similarTT.titulo}</a>
+              <Link to={`/tts/view/${similarTT._id}`}>{similarTT.titulo}</Link>
             </li>
           ))}
         </ul>
