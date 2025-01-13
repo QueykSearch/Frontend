@@ -24,7 +24,7 @@ body {
 .ttapproval-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #6C47BB; /* brand primario */
+  color: #6c47bb; /* brand primario */
   margin-bottom: 1rem;
 }
 
@@ -41,19 +41,29 @@ body {
 .ttapproval-table-container {
   width: 100%;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto; /* Permitir desplazamiento horizontal */
   margin-bottom: 1rem;
   background-color: #fff;
 }
 
+.ttapproval-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ttapproval-table-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
 .ttapproval-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   background-color: #fff;
 }
 
 .ttapproval-table thead {
-  background-color: #D8CAF6; /* color terciario */
+  background-color: #d8caf6; /* color terciario */
 }
 
 .ttapproval-table th,
@@ -71,7 +81,7 @@ body {
 
 /* Botones de acción (Aprobar / Rechazar) */
 .ttapproval-actions button {
-  background-color: #6C47BB; /* brand primario */
+  background-color: #6c47bb; /* brand primario */
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -104,7 +114,7 @@ body {
 }
 
 .ttapproval-pagination button {
-  background-color: #6C47BB;
+  background-color: #6c47bb;
   color: #fff;
   border: none;
   border-radius: 4px;
