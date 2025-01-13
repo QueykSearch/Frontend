@@ -28,6 +28,10 @@ const TTForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null); // PDF
   const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
 
+  // Nuevo: estado para mostrar loader durante la extracción
+  const [isExtractingMetadata, setIsExtractingMetadata] =
+    useState<boolean>(false);
+
   // Cargar Datos si es Edición
   useEffect(() => {
     if (ttId) {
@@ -66,6 +70,7 @@ const TTForm: React.FC = () => {
           setResumen(tt.resumen || "");
 
           if (tt.fechaPublicacion) {
+            // Ejemplo: 2023-10-01 => substring(0, 10) => "2023-10-01"
             setFechaPublicacion(tt.fechaPublicacion.substring(0, 10));
           }
         } catch (error) {
@@ -137,7 +142,81 @@ const TTForm: React.FC = () => {
     }
   };
 
-  // Enviar el formulario en `form-data`
+  // Manejo de EXTRAER METADATA
+  const handleExtractMetadata = async () => {
+    if (!file) {
+      alert("Por favor, selecciona un archivo PDF primero.");
+      return;
+    }
+
+    try {
+      setIsExtractingMetadata(true); // Activar loader
+
+      // Crear FormData con el archivo
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Hacer la petición al endpoint de metadata
+      const response = await api.post("/tts/metadata", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data && response.data.data) {
+        const meta = response.data.data;
+        console.log("Metadata extraída:", meta);
+
+        // Actualizar los campos del formulario con la metadata
+        if (meta.titulo) setTitulo(meta.titulo);
+
+        if (meta.autores && Array.isArray(meta.autores)) {
+          setAutores(
+            meta.autores.map((a: any) => ({
+              nombreCompleto: a.nombreCompleto || "",
+              orcid: a.orcid || "",
+            }))
+          );
+        }
+        if (meta.palabrasClave && Array.isArray(meta.palabrasClave)) {
+          setPalabrasClave(meta.palabrasClave);
+        }
+        if (meta.unidadAcademica) setUnidadAcademica(meta.unidadAcademica);
+
+        if (meta.directores && Array.isArray(meta.directores)) {
+          setDirectores(
+            meta.directores.map((d: any) => ({
+              nombreCompleto: d.nombreCompleto || "",
+              orcid: d.orcid || "",
+            }))
+          );
+        }
+        if (meta.grado) setGrado(meta.grado);
+        if (meta.resumen) setResumen(meta.resumen);
+
+        // La fecha que viene podría ser solo un año. Ej.: "2021"
+        if (meta.fechaPublicacion) {
+          const possibleYear = meta.fechaPublicacion.trim();
+          // Si coincide con 4 dígitos, formateamos a YYYY-01-01
+          if (/^\d{4}$/.test(possibleYear)) {
+            setFechaPublicacion(`${possibleYear}-01-01`);
+          } else {
+            // De lo contrario, si es algo tipo "2021-05-17" lo cortamos a 10 chars
+            setFechaPublicacion(possibleYear.substring(0, 10));
+          }
+        }
+
+        alert("Metadata extraída y campos actualizados");
+      } else {
+        alert("No se recibió metadata válida");
+      }
+    } catch (error: any) {
+      console.error("Error al extraer metadata:", error);
+      alert("Error al extraer metadata");
+    } finally {
+      setIsExtractingMetadata(false); // Desactivar loader
+    }
+  };
+
+  // Manejo de ENVÍO del Formulario
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -147,7 +226,7 @@ const TTForm: React.FC = () => {
     // Subida de archivo PDF
     if (file) formData.append("file", file);
 
-    // Los campos simples, como título, grado, resumen
+    // Los campos simples
     formData.append("titulo", titulo);
     formData.append("unidadAcademica", unidadAcademica);
     formData.append("grado", grado);
@@ -172,7 +251,6 @@ const TTForm: React.FC = () => {
     try {
       if (ttId) {
         // Actualizar TT
-        // convertir a JSON formData
         const jsonData = {
           titulo,
           unidadAcademica,
@@ -187,8 +265,6 @@ const TTForm: React.FC = () => {
         await api.put(`/tts/${ttId}`, jsonData, {
           headers: { "Content-Type": "application/json" },
         });
-
-        // await api.put(`/tts/${ttId}`, formData);
 
         alert("TT actualizado con éxito");
       } else {
@@ -208,7 +284,16 @@ const TTForm: React.FC = () => {
   return (
     <div>
       <h2>{ttId ? "Editar" : "Crear"} Trabajo de Titulación</h2>
+
+      {/* Loader simple mientras extraemos metadata */}
+      {isExtractingMetadata && (
+        <div style={{ marginBottom: "10px", color: "blue" }}>
+          Extrayendo metadata, por favor espera...
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
+        {/* Título */}
         <div>
           <label>Título:</label>
           <input
@@ -339,7 +424,7 @@ const TTForm: React.FC = () => {
           />
         </div>
 
-        {/* Subida de PDF */}
+        {/* Subida de PDF + Botón para extraer metadata */}
         <div>
           <label>Archivo PDF del TT:</label>
           <input
@@ -347,6 +432,14 @@ const TTForm: React.FC = () => {
             accept="application/pdf"
             onChange={handleFileChange}
           />
+          <button
+            type="button"
+            onClick={handleExtractMetadata}
+            style={{ marginLeft: "8px" }}
+            disabled={!file || isExtractingMetadata}
+          >
+            {isExtractingMetadata ? "Extrayendo..." : "Extraer Metadata"}
+          </button>
         </div>
 
         {/* Fecha de Publicación (opcional) */}
