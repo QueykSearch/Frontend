@@ -8,10 +8,10 @@ import { TTListResponse } from "../../types/TTListResponse";
 
 // Importa el CSS
 import "./TTList.css";
-import {useAuth} from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 const TTList: React.FC = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const [tts, setTts] = useState<TT[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,9 +22,34 @@ const TTList: React.FC = () => {
   const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
-    fetchTTs();
+    // fetchTTs();
+    fetchApprovedTTs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
+
+  const fetchApprovedTTs = async (filters?: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {
+        page,
+        limit,
+        status: "aprobado", // Solo TTs aprobados
+        ...filters,
+      };
+      const response = await api.get<TTListResponse>("/tts", { params });
+      if (response.data && response.data.data) {
+        setTts(response.data.data.data);
+        setTotal(response.data.data.total);
+        console.log("Respuesta de la API con aprobados:", response.data);
+      } else {
+        setError("Estructura de respuesta no esperada");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
 
   const fetchTTs = async (filters?: any) => {
     setLoading(true);
@@ -71,7 +96,8 @@ const TTList: React.FC = () => {
     if (isSemantic && semanticQuery) {
       fetchSemanticTTs(semanticQuery, limit);
     } else {
-      fetchTTs(filters);
+      // fetchTTs(filters);
+      fetchApprovedTTs(filters);
     }
   };
 
@@ -138,40 +164,44 @@ const TTList: React.FC = () => {
       <div className="table-container">
         <table className="ttlist-table">
           <thead>
-          <tr>
-            <th>Título</th>
-            <th>Autores</th>
-            <th>Palabras Clave</th>
-            <th>Unidad Académica</th>
-            <th>Directores</th>
-            <th>Grado</th>
-            <th>Acciones</th>
-          </tr>
+            <tr>
+              <th>Título</th>
+              <th>Autores</th>
+              <th>Palabras Clave</th>
+              <th>Unidad Académica</th>
+              <th>Directores</th>
+              <th>Grado</th>
+              <th>Acciones</th>
+            </tr>
           </thead>
           <tbody>
-          {tts.map((tt) => (
-            <tr key={tt._id}>
-              <td>
-                <Link to={`/tts/view/${tt._id}`}>{tt.titulo}</Link>
-              </td>
-              <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
-              <td>{tt.palabrasClave.join(", ")}</td>
-              <td>{tt.unidadAcademica}</td>
-              <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
-              <td>{tt.grado}</td>
-              <td>
-                <div className="ttlist-actions">
-                  {user?.roles.includes("gestor") && (
-                    <>
-                      <Link to={`/tts/edit/${tt._id}`}>Editar</Link>
-                      <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
-                    </>
-                  )}
-                  <button onClick={() => handleDownload(tt._id)}>Descargar PDF</button>
-                </div>
-              </td>
-            </tr>
-          ))}
+            {tts.map((tt) => (
+              <tr key={tt._id}>
+                <td>
+                  <Link to={`/tts/view/${tt._id}`}>{tt.titulo}</Link>
+                </td>
+                <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
+                <td>{tt.palabrasClave.join(", ")}</td>
+                <td>{tt.unidadAcademica}</td>
+                <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
+                <td>{tt.grado}</td>
+                <td>
+                  <div className="ttlist-actions">
+                    {user?.roles.includes("gestor") && (
+                      <>
+                        <Link to={`/tts/edit/${tt._id}`}>Editar</Link>
+                        <button onClick={() => handleDelete(tt._id)}>
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => handleDownload(tt._id)}>
+                      Descargar PDF
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
