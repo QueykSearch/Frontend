@@ -1,11 +1,10 @@
-// src/components/TT/TTForm.tsx
-
 import React, { useState, useEffect, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api/api"; // Axios config
+import api from "../../api/api";
 import { Autor, Director } from "../../types/TT";
 import { TTSingleResponse } from "../../types/TTSingleResponse";
 import { useAuth } from "../../context/AuthContext";
+import "./TTForm.css"; // Importar el CSS
 
 const TTForm: React.FC = () => {
   const { ttId } = useParams<{ ttId: string }>();
@@ -34,37 +33,27 @@ const TTForm: React.FC = () => {
       const fetchTT = async () => {
         try {
           const response = await api.get<TTSingleResponse>(`/tts/${ttId}`);
-          const tt = response.data.data; // Asumiendo que la respuesta es { message, data: TT }
+          const tt = response.data.data;
 
           setTitulo(tt.titulo || "");
-
           if (tt.autores && Array.isArray(tt.autores)) {
-            setAutores(
-              tt.autores.map((a) => ({
-                nombreCompleto: a.nombreCompleto || "",
-                orcid: a.orcid || "",
-              }))
-            );
+            setAutores(tt.autores.map((a) => ({
+              nombreCompleto: a.nombreCompleto || "",
+              orcid: a.orcid || "",
+            })));
           }
-
           if (tt.palabrasClave && Array.isArray(tt.palabrasClave)) {
             setPalabrasClave(tt.palabrasClave);
           }
-
           setUnidadAcademica(tt.unidadAcademica || "");
-
           if (tt.directores && Array.isArray(tt.directores)) {
-            setDirectores(
-              tt.directores.map((d) => ({
-                nombreCompleto: d.nombreCompleto || "",
-                orcid: d.orcid || "",
-              }))
-            );
+            setDirectores(tt.directores.map((d) => ({
+              nombreCompleto: d.nombreCompleto || "",
+              orcid: d.orcid || "",
+            })));
           }
-
           setGrado(tt.grado || "");
           setResumen(tt.resumen || "");
-
           if (tt.fechaPublicacion) {
             setFechaPublicacion(tt.fechaPublicacion.substring(0, 10));
           }
@@ -78,11 +67,7 @@ const TTForm: React.FC = () => {
   }, [ttId]);
 
   // Manejo de Autores
-  const handleAutorChange = (
-    index: number,
-    field: keyof Autor,
-    value: string
-  ) => {
+  const handleAutorChange = (index: number, field: keyof Autor, value: string) => {
     const newAutores = [...autores];
     newAutores[index][field] = value;
     setAutores(newAutores);
@@ -97,11 +82,7 @@ const TTForm: React.FC = () => {
   };
 
   // Manejo de Directores
-  const handleDirectorChange = (
-    index: number,
-    field: keyof Director,
-    value: string
-  ) => {
+  const handleDirectorChange = (index: number, field: keyof Director, value: string) => {
     const newDirectores = [...directores];
     newDirectores[index][field] = value;
     setDirectores(newDirectores);
@@ -141,38 +122,23 @@ const TTForm: React.FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // Crear `FormData`
     const formData = new FormData();
-
-    // Subida de archivo PDF
     if (file) formData.append("file", file);
-
-    // Los campos simples, como título, grado, resumen
     formData.append("titulo", titulo);
     formData.append("unidadAcademica", unidadAcademica);
     formData.append("grado", grado);
     formData.append("resumen", resumen);
-
-    // Convertimos a JSON las estructuras complejas
     formData.append("autores", JSON.stringify(autores));
     formData.append("directores", JSON.stringify(directores));
     formData.append("palabrasClave", JSON.stringify(palabrasClave));
-
     if (fechaPublicacion) {
       formData.append("fechaPublicacion", fechaPublicacion);
     }
-
     formData.append("createdBy", user._id);
-
-    // Depuración: Ver qué se está enviando
-    formData.forEach((value, key) => {
-      console.log(`${key}: ${value}`);
-    });
 
     try {
       if (ttId) {
         // Actualizar TT
-        // convertir a JSON formData
         const jsonData = {
           titulo,
           unidadAcademica,
@@ -183,13 +149,9 @@ const TTForm: React.FC = () => {
           palabrasClave,
           fechaPublicacion,
         };
-
         await api.put(`/tts/${ttId}`, jsonData, {
           headers: { "Content-Type": "application/json" },
         });
-
-        // await api.put(`/tts/${ttId}`, formData);
-
         alert("TT actualizado con éxito");
       } else {
         // Crear TT
@@ -206,12 +168,16 @@ const TTForm: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>{ttId ? "Editar" : "Crear"} Trabajo de Titulación</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
+    <div className="ttform-container">
+      <h2 className="ttform-title">
+        {ttId ? "Editar" : "Crear"} Trabajo de Titulación
+      </h2>
+      <form className="ttform-form" onSubmit={handleSubmit}>
+        {/* TÍTULO */}
+        <div className="ttform-group">
           <label>Título:</label>
           <input
+            className="ttform-input"
             type="text"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
@@ -219,12 +185,13 @@ const TTForm: React.FC = () => {
           />
         </div>
 
-        {/* Autores */}
-        <div>
+        {/* AUTORES */}
+        <div className="ttform-group">
           <label>Autores:</label>
           {autores.map((autor, index) => (
-            <div key={index}>
+            <div className="ttform-repetible-item" key={index}>
               <input
+                className="ttform-input"
                 type="text"
                 placeholder="Nombre Completo"
                 value={autor.nombreCompleto}
@@ -234,6 +201,7 @@ const TTForm: React.FC = () => {
                 required
               />
               <input
+                className="ttform-input"
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={autor.orcid}
@@ -242,43 +210,58 @@ const TTForm: React.FC = () => {
                 }
               />
               {autores.length > 1 && (
-                <button type="button" onClick={() => removeAutor(index)}>
+                <button
+                  className="ttform-delete-button"
+                  type="button"
+                  onClick={() => removeAutor(index)}
+                >
                   Eliminar
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addAutor}>
+          <button className="ttform-inline-button" type="button" onClick={addAutor}>
             + Autor
           </button>
         </div>
 
-        {/* Palabras Clave */}
-        <div>
+        {/* PALABRAS CLAVE */}
+        <div className="ttform-group">
           <label>Palabras Clave:</label>
           {palabrasClave.map((pc, idx) => (
-            <div key={idx}>
+            <div className="ttform-repetible-item" key={idx}>
               <input
+                className="ttform-input"
                 type="text"
                 value={pc}
                 onChange={(e) => handlePalabraClaveChange(idx, e.target.value)}
                 required={idx === 0}
               />
               {palabrasClave.length > 1 && (
-                <button type="button" onClick={() => removePalabraClave(idx)}>
+                <button
+                  className="ttform-delete-button"
+                  type="button"
+                  onClick={() => removePalabraClave(idx)}
+                >
                   Eliminar
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addPalabraClave}>
+          <button
+            className="ttform-inline-button"
+            type="button"
+            onClick={addPalabraClave}
+          >
             + Palabra Clave
           </button>
         </div>
 
-        <div>
+        {/* UNIDAD ACADÉMICA */}
+        <div className="ttform-group">
           <label>Unidad Académica:</label>
           <input
+            className="ttform-input"
             type="text"
             value={unidadAcademica}
             onChange={(e) => setUnidadAcademica(e.target.value)}
@@ -286,12 +269,13 @@ const TTForm: React.FC = () => {
           />
         </div>
 
-        {/* Directores */}
-        <div>
+        {/* DIRECTORES */}
+        <div className="ttform-group">
           <label>Directores:</label>
           {directores.map((director, index) => (
-            <div key={index}>
+            <div className="ttform-repetible-item" key={index}>
               <input
+                className="ttform-input"
                 type="text"
                 placeholder="Nombre Completo"
                 value={director.nombreCompleto}
@@ -301,6 +285,7 @@ const TTForm: React.FC = () => {
                 required
               />
               <input
+                className="ttform-input"
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={director.orcid}
@@ -309,20 +294,30 @@ const TTForm: React.FC = () => {
                 }
               />
               {directores.length > 1 && (
-                <button type="button" onClick={() => removeDirector(index)}>
+                <button
+                  className="ttform-delete-button"
+                  type="button"
+                  onClick={() => removeDirector(index)}
+                >
                   Eliminar
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addDirector}>
+          <button
+            className="ttform-inline-button"
+            type="button"
+            onClick={addDirector}
+          >
             + Director
           </button>
         </div>
 
-        <div>
+        {/* GRADO */}
+        <div className="ttform-group">
           <label>Grado:</label>
           <input
+            className="ttform-input"
             type="text"
             value={grado}
             onChange={(e) => setGrado(e.target.value)}
@@ -330,36 +325,42 @@ const TTForm: React.FC = () => {
           />
         </div>
 
-        <div>
+        {/* RESUMEN */}
+        <div className="ttform-group">
           <label>Resumen:</label>
           <textarea
+            className="ttform-textarea"
             value={resumen}
             onChange={(e) => setResumen(e.target.value)}
             required
           />
         </div>
 
-        {/* Subida de PDF */}
-        <div>
+        {/* ARCHIVO PDF */}
+        <div className="ttform-group">
           <label>Archivo PDF del TT:</label>
           <input
+            className="ttform-input"
             type="file"
             accept="application/pdf"
             onChange={handleFileChange}
           />
         </div>
 
-        {/* Fecha de Publicación (opcional) */}
-        <div>
+        {/* FECHA DE PUBLICACIÓN */}
+        <div className="ttform-group">
           <label>Fecha de Publicación:</label>
           <input
+            className="ttform-input"
             type="date"
             value={fechaPublicacion}
             onChange={(e) => setFechaPublicacion(e.target.value)}
           />
         </div>
 
-        <button type="submit">{ttId ? "Actualizar" : "Crear"} TT</button>
+        <button className="ttform-button" type="submit">
+          {ttId ? "Actualizar" : "Crear"} TT
+        </button>
       </form>
     </div>
   );

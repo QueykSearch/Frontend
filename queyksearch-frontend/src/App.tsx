@@ -36,7 +36,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Pantalla de Registro */}
-        {<Route path="/signup" element={<SignupPage />} />}
+        {<Route path="/register" element={<SignupPage />} />}
 
         {/* Historial solo si NO eres "visitor" */}
         {!user.roles.includes("visitor") && (

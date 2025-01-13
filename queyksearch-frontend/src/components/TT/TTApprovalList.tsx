@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import { TT } from "../../types/TT";
-// import { useAuth } from "../../context/AuthContext";
+import "./TTApprovalList.css"; // Importar el CSS
 
 const TTApprovalList: React.FC = () => {
-  //   const { user } = useAuth();
   const [tts, setTts] = useState<TT[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,14 +24,13 @@ const TTApprovalList: React.FC = () => {
       const params = {
         page,
         limit,
-        status: "pendiente", // Solo TTs pendientes
+        status: "pendiente",
         ...filters,
       };
       const response = await api.get("/tts", { params });
       if (response.data && response.data.data) {
         setTts(response.data.data.data);
         setTotal(response.data.data.total);
-        console.log("Respuesta de la API:", response.data);
       } else {
         setError("Estructura de respuesta no esperada");
       }
@@ -45,7 +43,6 @@ const TTApprovalList: React.FC = () => {
   const handleApprove = async (ttId: string) => {
     try {
       await api.patch(`/tts/${ttId}/approve`);
-      // Actualizar la lista localmente
       setTts(tts.filter((tt) => tt._id !== ttId));
       alert("TT aprobado con éxito");
     } catch (error) {
@@ -57,7 +54,6 @@ const TTApprovalList: React.FC = () => {
   const handleReject = async (ttId: string) => {
     try {
       await api.patch(`/tts/${ttId}/reject`);
-      // Actualizar la lista localmente
       setTts(tts.filter((tt) => tt._id !== ttId));
       alert("TT rechazado con éxito");
     } catch (error) {
@@ -68,7 +64,7 @@ const TTApprovalList: React.FC = () => {
 
   const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLimit(Number(e.target.value));
-    setPage(1); // Reiniciar a la primera página al cambiar el límite
+    setPage(1);
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -81,16 +77,16 @@ const TTApprovalList: React.FC = () => {
     if (page < totalPages) setPage(page + 1);
   };
 
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div className="ttapproval-loading">Cargando...</div>;
+  if (error) return <div className="ttapproval-error">Error: {error}</div>;
 
   return (
-    <div>
-      <h2>TTs por Aprobar</h2>
+    <div className="ttapproval-container">
+      <h2 className="ttapproval-title">TTs por Aprobar</h2>
 
-      <div style={{ margin: "10px 0" }}>
-        <label>Resultados por página: </label>
-        <select value={limit} onChange={handleLimitChange}>
+      <div className="ttapproval-limit">
+        <label htmlFor="limitSelect">Resultados por página:</label>
+        <select id="limitSelect" value={limit} onChange={handleLimitChange}>
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
@@ -100,8 +96,9 @@ const TTApprovalList: React.FC = () => {
       {tts.length === 0 ? (
         <p>No hay TTs pendientes por aprobar.</p>
       ) : (
-        <table border={1} cellPadding={10} cellSpacing={0}>
-          <thead>
+        <div className="ttapproval-table-container">
+          <table className="ttapproval-table">
+            <thead>
             <tr>
               <th>Título</th>
               <th>Autores</th>
@@ -112,34 +109,35 @@ const TTApprovalList: React.FC = () => {
               <th>Status</th>
               <th>Acciones</th>
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             {tts.map((tt) => (
               <tr key={tt._id}>
                 <td>{tt.titulo}</td>
                 <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
                 <td>{tt.palabrasClave.join(", ")}</td>
                 <td>{tt.unidadAcademica}</td>
-                <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
+                <td>
+                  {tt.directores.map((d) => d.nombreCompleto).join(", ")}
+                </td>
                 <td>{tt.grado}</td>
                 <td>{tt.status || "pendiente"}</td>
-                <td>
-                  <button onClick={() => handleApprove(tt._id)}>Aprobar</button>{" "}
-                  |{" "}
+                <td className="ttapproval-actions">
+                  <button onClick={() => handleApprove(tt._id)}>Aprobar</button>
                   <button onClick={() => handleReject(tt._id)}>Rechazar</button>
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* Controles de Paginación */}
-      <div style={{ marginTop: "20px" }}>
+      <div className="ttapproval-pagination">
         <button onClick={handlePrevPage} disabled={page <= 1}>
           Anterior
         </button>
-        <span style={{ margin: "0 10px" }}>
+        <span>
           Página {page} de {totalPages}
         </span>
         <button onClick={handleNextPage} disabled={page >= totalPages}>

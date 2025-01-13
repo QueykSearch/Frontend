@@ -3,10 +3,10 @@ import { TT } from "../../types/TT";
 import { useParams } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
+import "./TTDetail.css"; // Importa el CSS
 
 const TTDetail: React.FC = () => {
   const { user } = useAuth();
-
   const { ttId } = useParams<{ ttId: string }>();
   const [tt, setTT] = useState<TT | null>(null);
   const [similarTTs, setSimilarTTs] = useState<TT[]>([]);
@@ -54,49 +54,54 @@ const TTDetail: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tt]);
 
-  if (loading) return <div>Cargando TT...</div>;
-  if (error) return <div>{error}</div>;
-  if (!tt) return <div>No se encontró el TT</div>;
+  if (loading) return <div className="ttdetail-loading">Cargando TT...</div>;
+  if (error) return <div className="ttdetail-error">{error}</div>;
+  if (!tt) return <div className="ttdetail-empty">No se encontró el TT</div>;
 
   return (
-    <div>
-      <h2>{tt.titulo}</h2>
-      <p>
-        <strong>Autores:</strong>{" "}
-        {tt.autores.map((a) => a.nombreCompleto).join(", ")}
+    <div className="ttdetail-container">
+      <h2 className="ttdetail-title">{tt.titulo}</h2>
+
+      <p className="ttdetail-info">
+        <strong>Autores:</strong> {tt.autores.map((a) => a.nombreCompleto).join(", ")}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Palabras Clave:</strong> {tt.palabrasClave.join(", ")}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Unidad Académica:</strong> {tt.unidadAcademica}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Directores:</strong>{" "}
         {tt.directores.map((d) => d.nombreCompleto).join(", ")}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Grado:</strong> {tt.grado}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Resumen:</strong> {tt.resumen}
       </p>
-      <p>
+      <p className="ttdetail-info">
         <strong>Status:</strong> {tt.status}
       </p>
       {tt.documentoUrl && (
-        <p>
-          <a href={tt.documentoUrl} target="_blank" rel="noopener noreferrer">
+        <p className="ttdetail-info">
+          <a
+            className="ttdetail-link"
+            href={tt.documentoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Descargar Documento
           </a>
         </p>
       )}
 
-      <h3>Trabajos Similares</h3>
+      <h3 className="ttdetail-subtitle">Trabajos Similares</h3>
       {loadingSimilar ? (
-        <p>Cargando trabajos similares...</p>
+        <p className="ttdetail-info">Cargando trabajos similares...</p>
       ) : similarTTs.length > 1 ? (
-        <ul>
+        <ul className="ttdetail-similar-list">
           {similarTTs.slice(1).map((similarTT) => (
             <li key={similarTT._id}>
               <a href={`/tts/view/${similarTT._id}`}>{similarTT.titulo}</a>
@@ -104,7 +109,7 @@ const TTDetail: React.FC = () => {
           ))}
         </ul>
       ) : (
-        <p>No se encontraron trabajos similares.</p>
+        <p className="ttdetail-info">No se encontraron trabajos similares.</p>
       )}
     </div>
   );

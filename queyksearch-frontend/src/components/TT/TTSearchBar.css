@@ -1,0 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Aseguramos la fuente Poppins */
+body {
+  font-family: "Poppins", sans-serif;
+  color: #434343; /* texto primario */
+}
+
+/* Contenedor principal del form */
+.ttsearchbar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem; /* Espacio inferior para separar del contenido siguiente */
+}
+
+/* Contenedor de los radio buttons */
+.ttsearchbar-radio-group {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: #434343; /* texto primario */
+}
+
+/* Ajustes de label del radio */
+.ttsearchbar-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+/* Inputs de texto y número */
+.ttsearchbar-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+/* Estilos base de inputs */
+.ttsearchbar-inputs input[type="text"],
+.ttsearchbar-inputs input[type="number"] {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  color: #434343;
+}
+
+.ttsearchbar-inputs input:focus {
+  outline: none;
+  border-color: #6C47BB; /* brand primario */
+}
+
+/* Botón de enviar */
+.ttsearchbar-submit {
+  width: fit-content; /* se ajusta al contenido */
+  background-color: #6C47BB; /* brand primario */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ttsearchbar-submit:hover {
+  opacity: 0.8;
+}

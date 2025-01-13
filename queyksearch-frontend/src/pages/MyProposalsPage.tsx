@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import { TT } from "../types/TT";
 import { useAuth } from "../context/AuthContext";
+import "./MyProposalsPage.css"; // Importa el CSS
 
 const MyProposalsPage: React.FC = () => {
   const { user } = useAuth();
@@ -14,7 +15,6 @@ const MyProposalsPage: React.FC = () => {
         const res = await api.get("/tts", {
           params: { createdBy: user._id },
         });
-        // res.data.data.data => la lista de TT
         setProposals(res.data.data.data);
       } catch (error) {
         console.error("Error al obtener mis propuestas:", error);
@@ -27,17 +27,23 @@ const MyProposalsPage: React.FC = () => {
     }
   }, [user._id]);
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) {
+    return <div className="myproposals-loading">Cargando...</div>;
+  }
 
   return (
-    <div>
-      <h1>Mis Propuestas</h1>
+    <div className="myproposals-container">
+      <h1 className="myproposals-title">Mis Propuestas</h1>
       {proposals.map((tt) => (
-        <div key={tt._id} style={{ border: "1px solid #ccc", margin: "8px" }}>
-          <h3>{tt.titulo}</h3>
-          <p>Status: {tt.status}</p>
-          <p>Resumen: {tt.resumen}</p>
-          {/* Muestra otros datos si quieres */}
+        <div className="myproposals-item" key={tt._id}>
+          <h3 className="myproposals-item-title">{tt.titulo}</h3>
+          <p className="myproposals-item-status">
+            <span className="myproposals-item-label">Status:</span> {tt.status}
+          </p>
+          <p className="myproposals-item-resumen">
+            <span className="myproposals-item-label">Resumen:</span> {tt.resumen}
+          </p>
+          {/* Agrega más campos si deseas */}
         </div>
       ))}
     </div>

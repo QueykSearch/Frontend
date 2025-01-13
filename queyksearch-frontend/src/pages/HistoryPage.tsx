@@ -3,6 +3,7 @@ import api from "../api/api";
 import { TT } from "../types/TT";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "./HistoryPage.css"; // Importa el CSS
 
 const HistoryPage: React.FC = () => {
   const [historyTTIds, setHistoryTTIds] = useState<string[]>([]);
@@ -59,21 +60,26 @@ const HistoryPage: React.FC = () => {
     fetchTTDetails();
   }, [historyTTIds]);
 
-  if (loading) return <div>Cargando historial...</div>;
-  if (error) return <div>{error}</div>;
-  if (historyTTs.length === 0)
-    return <div>No tienes historial de TTs visitados.</div>;
+  if (loading) return <div className="history-loading">Cargando historial...</div>;
+  if (error) return <div className="history-error">{error}</div>;
+  if (historyTTs.length === 0) {
+    return <div className="history-empty">No tienes historial de TTs visitados.</div>;
+  }
 
   return (
-    <div>
-      <h2>Historial de TTs Visitados</h2>
-      <ul>
-        {historyTTs.map((tt) => (
-          <li key={tt._id}>
-            <Link to={`/tts/${tt._id}`}>{tt.titulo}</Link>
-          </li>
-        ))}
-      </ul>
+    <div className="history-container">
+      <h2 className="history-title">Historial de TTs Visitados</h2>
+      {loadingTTs ? (
+        <div className="history-loading">Cargando detalles de TTs...</div>
+      ) : (
+        <ul className="history-list">
+          {historyTTs.map((tt) => (
+            <li key={tt._id}>
+              <Link to={`/tts/view/${tt._id}`}>{tt.titulo}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

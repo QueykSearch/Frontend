@@ -6,6 +6,9 @@ import { TT } from "../../types/TT";
 import { Link } from "react-router-dom";
 import { TTListResponse } from "../../types/TTListResponse";
 
+// Importa el CSS
+import "./TTList.css";
+
 const TTList: React.FC = () => {
   const [tts, setTts] = useState<TT[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,48 +20,18 @@ const TTList: React.FC = () => {
 
   useEffect(() => {
     fetchTTs();
-    // fetchApprovedTTs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
-
-  const fetchApprovedTTs = async (filters?: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = {
-        page,
-        limit,
-        status: "aprobado", // Solo TTs aprobados
-        ...filters,
-      };
-      const response = await api.get<TTListResponse>("/tts", { params });
-      if (response.data && response.data.data) {
-        setTts(response.data.data.data);
-        setTotal(response.data.data.total);
-        console.log("Respuesta de la API con aprobados:", response.data);
-      } else {
-        setError("Estructura de respuesta no esperada");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
 
   const fetchTTs = async (filters?: any) => {
     setLoading(true);
     setError(null);
     try {
-      const params = {
-        page,
-        limit,
-        ...filters,
-      };
+      const params = { page, limit, ...filters };
       const response = await api.get<TTListResponse>("/tts", { params });
       if (response.data && response.data.data) {
         setTts(response.data.data.data);
         setTotal(response.data.data.total);
-        console.log("Respuesta de la API:", response.data);
       } else {
         setError("Estructura de respuesta no esperada");
       }
@@ -72,18 +45,11 @@ const TTList: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = {
-        query,
-        limit: limit || 8,
-      };
+      const params = { query, limit: limit || 8 };
       const response = await api.get("/tts/semantic", { params });
       if (response.data && response.data.data) {
-        setTts(response.data.data); // data es un array
-        setTotal(response.data.data.length); // total es la cantidad de resultados
-        console.log(
-          "Respuesta de la API con búsqueda semántica:",
-          response.data
-        );
+        setTts(response.data.data);
+        setTotal(response.data.data.length);
       } else {
         setError("Estructura de respuesta no esperada");
       }
@@ -98,12 +64,11 @@ const TTList: React.FC = () => {
     isSemantic: boolean,
     semanticQuery?: string
   ) => {
-    setPage(1); // Reiniciar a la primera página al buscar
+    setPage(1);
     if (isSemantic && semanticQuery) {
       fetchSemanticTTs(semanticQuery, limit);
     } else {
       fetchTTs(filters);
-      // fetchApprovedTTs(filters);
     }
   };
 
@@ -122,7 +87,6 @@ const TTList: React.FC = () => {
   const handleDownload = async (ttId: string) => {
     try {
       const res = await api.get(`/tts/${ttId}/download`);
-      // res.data.downloadUrl => la URL firmada
       window.open(res.data.downloadUrl, "_blank");
     } catch (error) {
       console.error("Error al descargar:", error);
@@ -132,7 +96,7 @@ const TTList: React.FC = () => {
 
   const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLimit(Number(e.target.value));
-    setPage(1); // Reiniciar a la primera página al cambiar el límite
+    setPage(1);
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -145,25 +109,32 @@ const TTList: React.FC = () => {
     if (page < totalPages) setPage(page + 1);
   };
 
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div className="ttlist-loading">Cargando...</div>;
+  if (error) return <div className="ttlist-error">Error: {error}</div>;
 
   return (
-    <div>
-      <h2>Repositorio de TT</h2>
-      <TTSearchBar onSearch={handleSearch} />
+    <div className="ttlist-container">
+      <h2 className="ttlist-title">Repositorio de TT</h2>
 
-      <div style={{ margin: "10px 0" }}>
-        <label>Resultados por página: </label>
-        <select value={limit} onChange={handleLimitChange}>
+      {/* Barra de búsqueda */}
+      <div className="ttlist-searchbar">
+        <TTSearchBar onSearch={handleSearch} />
+      </div>
+
+      {/* Selector de límite */}
+      <div className="ttlist-limit">
+        <label htmlFor="limitSelect">Resultados por página:</label>
+        <select id="limitSelect" value={limit} onChange={handleLimitChange}>
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
         </select>
       </div>
 
-      <table border={1} cellPadding={10} cellSpacing={0}>
-        <thead>
+      {/* Tabla con resultados */}
+      <div className="table-container">
+        <table className="ttlist-table">
+          <thead>
           <tr>
             <th>Título</th>
             <th>Autores</th>
@@ -173,8 +144,8 @@ const TTList: React.FC = () => {
             <th>Grado</th>
             <th>Acciones</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           {tts.map((tt) => (
             <tr key={tt._id}>
               <td>
@@ -186,23 +157,24 @@ const TTList: React.FC = () => {
               <td>{tt.directores.map((d) => d.nombreCompleto).join(", ")}</td>
               <td>{tt.grado}</td>
               <td>
-                <Link to={`/tts/edit/${tt._id}`}>Editar</Link> |{" "}
-                <button onClick={() => handleDelete(tt._id)}>Eliminar</button> |{" "}
-                <button onClick={() => handleDownload(tt._id)}>
-                  Descargar PDF
-                </button>
+                <div className="ttlist-actions">
+                  <Link to={`/tts/edit/${tt._id}`}>Editar</Link>
+                  <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+                  <button onClick={() => handleDownload(tt._id)}>Descargar PDF</button>
+                </div>
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
 
-      {/* Controles de Paginación */}
-      <div style={{ marginTop: "20px" }}>
+      {/* Controles de paginación */}
+      <div className="ttlist-pagination">
         <button onClick={handlePrevPage} disabled={page <= 1}>
           Anterior
         </button>
-        <span style={{ margin: "0 10px" }}>
+        <span>
           Página {page} de {totalPages}
         </span>
         <button onClick={handleNextPage} disabled={page >= totalPages}>
