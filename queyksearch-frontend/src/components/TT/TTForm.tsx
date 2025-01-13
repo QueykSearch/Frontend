@@ -29,7 +29,8 @@ const TTForm: React.FC = () => {
   const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
 
   // Nuevo: estado para mostrar loader durante la extracción
-  const [isExtractingMetadata, setIsExtractingMetadata] = useState<boolean>(false);
+  const [isExtractingMetadata, setIsExtractingMetadata] =
+    useState<boolean>(false);
 
   // Cargar Datos si es Edición
   useEffect(() => {
@@ -81,7 +82,11 @@ const TTForm: React.FC = () => {
   }, [ttId]);
 
   // Manejo de Autores
-  const handleAutorChange = (index: number, field: keyof Autor, value: string) => {
+  const handleAutorChange = (
+    index: number,
+    field: keyof Autor,
+    value: string
+  ) => {
     const newAutores = [...autores];
     newAutores[index][field] = value;
     setAutores(newAutores);
@@ -96,7 +101,11 @@ const TTForm: React.FC = () => {
   };
 
   // Manejo de Directores
-  const handleDirectorChange = (index: number, field: keyof Director, value: string) => {
+  const handleDirectorChange = (
+    index: number,
+    field: keyof Director,
+    value: string
+  ) => {
     const newDirectores = [...directores];
     newDirectores[index][field] = value;
     setDirectores(newDirectores);
@@ -183,7 +192,7 @@ const TTForm: React.FC = () => {
 
         // Manejo de fecha
         if (meta.fechaPublicacion) {
-          const possibleYear = meta.fechaPublicacion.trim();
+          const possibleYear = meta.fechaPublicacion.toString().trim();
           if (/^\d{4}$/.test(possibleYear)) {
             setFechaPublicacion(`${possibleYear}-01-01`);
           } else {
@@ -258,7 +267,9 @@ const TTForm: React.FC = () => {
 
   return (
     <div className="ttform-container">
-      <h2 className="ttform-title">{ttId ? "Editar" : "Crear"} Trabajo de Titulación</h2>
+      <h2 className="ttform-title">
+        {ttId ? "Editar" : "Crear"} Trabajo de Titulación
+      </h2>
 
       {/* Loader simple mientras extraemos metadata */}
       {isExtractingMetadata && (
@@ -310,7 +321,9 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="Nombre Completo"
                 value={autor.nombreCompleto}
-                onChange={(e) => handleAutorChange(index, "nombreCompleto", e.target.value)}
+                onChange={(e) =>
+                  handleAutorChange(index, "nombreCompleto", e.target.value)
+                }
                 required
               />
               <input
@@ -318,7 +331,9 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={autor.orcid}
-                onChange={(e) => handleAutorChange(index, "orcid", e.target.value)}
+                onChange={(e) =>
+                  handleAutorChange(index, "orcid", e.target.value)
+                }
               />
               {autores.length > 1 && (
                 <button
@@ -331,7 +346,11 @@ const TTForm: React.FC = () => {
               )}
             </div>
           ))}
-          <button className="ttform-inline-button" type="button" onClick={addAutor}>
+          <button
+            className="ttform-inline-button"
+            type="button"
+            onClick={addAutor}
+          >
             + Autor
           </button>
         </div>
@@ -389,7 +408,9 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="Nombre Completo"
                 value={director.nombreCompleto}
-                onChange={(e) => handleDirectorChange(index, "nombreCompleto", e.target.value)}
+                onChange={(e) =>
+                  handleDirectorChange(index, "nombreCompleto", e.target.value)
+                }
                 required
               />
               <input
@@ -397,7 +418,9 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={director.orcid}
-                onChange={(e) => handleDirectorChange(index, "orcid", e.target.value)}
+                onChange={(e) =>
+                  handleDirectorChange(index, "orcid", e.target.value)
+                }
               />
               {directores.length > 1 && (
                 <button
