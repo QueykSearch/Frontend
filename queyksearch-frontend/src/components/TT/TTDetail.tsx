@@ -35,6 +35,11 @@ const TTDetail: React.FC = () => {
     }
   }, [ttId, user._id]);
 
+  const handleDownload = async () => {
+    const res = await api.get(`/tts/${ttId}/download`);
+    window.open(res.data.downloadUrl, "_blank");
+  };
+
   const fetchSimilarTTs = async (query: string) => {
     setLoadingSimilar(true);
     try {
@@ -84,16 +89,14 @@ const TTDetail: React.FC = () => {
       <p className="ttdetail-info">
         <strong>Status:</strong> {tt.status}
       </p>
-      {tt.documentoUrl && (
+      {tt.filename && (
         <p className="ttdetail-info">
-          <a
-            className="ttdetail-link"
-            href={tt.documentoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            className="ttdetail-download"
+            onClick={handleDownload}
           >
-            Descargar Documento
-          </a>
+            Descargar documento
+          </button>
         </p>
       )}
 

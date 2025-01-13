@@ -70,3 +70,57 @@ body {
 .myproposals-item-label {
   font-weight: 500;
 }
+
+.myproposals-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+.myproposals-pagination button {
+  background-color: #6C47BB;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.myproposals-pagination button:hover {
+  opacity: 0.8;
+}
+
+.myproposals-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.myproposals-pagination span {
+  font-size: 1rem;
+  color: #434343;
+}
+
+.myproposals-filters {
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* Ajusta la separación entre el filtro de estado y el limit */
+  margin-bottom: 1rem; /* Separación vertical respecto a la lista */
+}
+
+/* Filtro de estado */
+.myproposals-status-filter,
+.myproposals-limit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.myproposals-status-filter label,
+.myproposals-limit label {
+  font-weight: 500;
+}

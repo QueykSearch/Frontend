@@ -82,6 +82,11 @@ body {
   opacity: 0.8;
 }
 
+.ttform-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 /* Pequeños botones para +Autor, +Director, etc. */
 .ttform-inline-button {
   background-color: #3B8BBC; /* brand secundario */

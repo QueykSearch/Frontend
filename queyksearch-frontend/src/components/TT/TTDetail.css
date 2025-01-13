@@ -70,14 +70,25 @@ body {
   margin-bottom: 0.4rem;
 }
 
-.ttdetail-similar-list a {
-  color: #3B8BBC; /* brand secundario */
-  text-decoration: none;
+.ttdetail-download {
+  background-color: #6C47BB; /* brand primario */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
   transition: opacity 0.2s ease;
 }
 
-.ttdetail-similar-list a:hover {
+.ttdetail-download:hover {
   opacity: 0.8;
+}
+
+.ttdetail-download:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 /* Estado de carga / error / ausencia */

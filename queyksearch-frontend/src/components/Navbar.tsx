@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       {/* Logo a la izquierda */}
       <Link to="/" className="navbar-logo">
-        <span className="navbar-logo__queyk">Queyk</span>
+        <span className="navbar-logo__queyk">QueyK</span>
         <span className="navbar-logo__search">Search</span>
       </Link>
 

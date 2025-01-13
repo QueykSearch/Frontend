@@ -1,32 +1,34 @@
 // src/components/TT/TTForm.tsx
 
-import React, { useState, useEffect, FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, {useState, useEffect, FormEvent} from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import api from "../../api/api";
-import { Autor, Director } from "../../types/TT";
-import { TTSingleResponse } from "../../types/TTSingleResponse";
-import { useAuth } from "../../context/AuthContext";
+import {Autor, Director} from "../../types/TT";
+import {TTSingleResponse} from "../../types/TTSingleResponse";
+import {useAuth} from "../../context/AuthContext";
 import "./TTForm.css"; // Importar el CSS
 
 const TTForm: React.FC = () => {
-  const { ttId } = useParams<{ ttId: string }>();
+  const {ttId} = useParams<{ ttId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {user} = useAuth();
 
   // Definición de estados con tipos explícitos
   const [titulo, setTitulo] = useState<string>("");
   const [autores, setAutores] = useState<Autor[]>([
-    { nombreCompleto: "", orcid: "" },
+    {nombreCompleto: "", orcid: ""},
   ]);
   const [palabrasClave, setPalabrasClave] = useState<string[]>([""]);
   const [unidadAcademica, setUnidadAcademica] = useState<string>("");
   const [directores, setDirectores] = useState<Director[]>([
-    { nombreCompleto: "", orcid: "" },
+    {nombreCompleto: "", orcid: ""},
   ]);
   const [grado, setGrado] = useState<string>("");
   const [resumen, setResumen] = useState<string>("");
   const [file, setFile] = useState<File | null>(null); // PDF
   const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
+
+  const [uploading, setUploading] = useState<boolean>(false); // Nuevo: estado para mostrar loader durante la subida
 
   // Nuevo: estado para mostrar loader durante la extracción
   const [isExtractingMetadata, setIsExtractingMetadata] =
@@ -92,7 +94,7 @@ const TTForm: React.FC = () => {
     setAutores(newAutores);
   };
   const addAutor = () => {
-    setAutores([...autores, { nombreCompleto: "", orcid: "" }]);
+    setAutores([...autores, {nombreCompleto: "", orcid: ""}]);
   };
   const removeAutor = (index: number) => {
     const newAutores = [...autores];
@@ -111,7 +113,7 @@ const TTForm: React.FC = () => {
     setDirectores(newDirectores);
   };
   const addDirector = () => {
-    setDirectores([...directores, { nombreCompleto: "", orcid: "" }]);
+    setDirectores([...directores, {nombreCompleto: "", orcid: ""}]);
   };
   const removeDirector = (index: number) => {
     const newDirectores = [...directores];
@@ -156,7 +158,7 @@ const TTForm: React.FC = () => {
 
       // Llamamos al endpoint de metadata con IA
       const response = await api.post("/tts/metadata", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {"Content-Type": "multipart/form-data"},
       });
 
       if (response.data && response.data.data) {
@@ -214,6 +216,7 @@ const TTForm: React.FC = () => {
 
   // Manejo de ENVÍO del Formulario
   const handleSubmit = async (e: FormEvent) => {
+    setUploading(true); // Mostrar loader
     e.preventDefault();
 
     // Crear `FormData`
@@ -247,14 +250,14 @@ const TTForm: React.FC = () => {
         };
 
         await api.put(`/tts/${ttId}`, jsonData, {
-          headers: { "Content-Type": "application/json" },
+          headers: {"Content-Type": "application/json"},
         });
 
         alert("TT actualizado con éxito");
       } else {
         // Crear TT
         await api.post("/tts", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {"Content-Type": "multipart/form-data"},
         });
         alert("TT creado con éxito");
       }
@@ -262,6 +265,8 @@ const TTForm: React.FC = () => {
     } catch (err) {
       console.error("Error al guardar el TT:", err);
       alert("Error al guardar el TT");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -273,7 +278,7 @@ const TTForm: React.FC = () => {
 
       {/* Loader simple mientras extraemos metadata */}
       {isExtractingMetadata && (
-        <div style={{ marginBottom: "10px", color: "blue" }}>
+        <div style={{marginBottom: "10px", color: "blue"}}>
           Extrayendo metadata con IA, por favor espera...
         </div>
       )}
@@ -474,8 +479,8 @@ const TTForm: React.FC = () => {
           />
         </div>
 
-        <button className="ttform-button" type="submit">
-          {ttId ? "Actualizar" : "Crear"} TT
+        <button className="ttform-button" type="submit" disabled={isExtractingMetadata || uploading}>
+          {uploading ? "Subiendo TT..." : ttId ? "Actualizar TT" : "Crear TT"}
         </button>
       </form>
     </div>

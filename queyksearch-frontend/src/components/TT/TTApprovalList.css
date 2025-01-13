@@ -80,7 +80,7 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   transition: opacity 0.2s ease;
-  margin-right: 0.5rem;
+  margin-top: 10px;
 }
 
 .ttapproval-actions button:hover {
