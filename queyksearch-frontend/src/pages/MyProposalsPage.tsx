@@ -1,24 +1,45 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "../api/api";
+import { TT } from "../types/TT";
+import { useAuth } from "../context/AuthContext";
 
 const MyProposalsPage: React.FC = () => {
-  // Static data for now, replace with API integration later
-  const proposals = [
-    { id: 1, title: "Proposal 1", description: "Description for proposal 1" },
-    { id: 2, title: "Proposal 2", description: "Description for proposal 2" },
-    { id: 3, title: "Proposal 3", description: "Description for proposal 3" },
-  ];
+  const { user } = useAuth();
+  const [proposals, setProposals] = useState<TT[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMyProposals = async () => {
+      try {
+        const res = await api.get("/tts", {
+          params: { createdBy: user._id },
+        });
+        // res.data.data.data => la lista de TT
+        setProposals(res.data.data.data);
+      } catch (error) {
+        console.error("Error al obtener mis propuestas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user._id) {
+      fetchMyProposals();
+    }
+  }, [user._id]);
+
+  if (loading) return <div>Cargando...</div>;
 
   return (
     <div>
-      <h1>My Proposals</h1>
-      <ul>
-        {proposals.map((proposal) => (
-          <li key={proposal.id}>
-            <h2>{proposal.title}</h2>
-            <p>{proposal.description}</p>
-          </li>
-        ))}
-      </ul>
+      <h1>Mis Propuestas</h1>
+      {proposals.map((tt) => (
+        <div key={tt._id} style={{ border: "1px solid #ccc", margin: "8px" }}>
+          <h3>{tt.titulo}</h3>
+          <p>Status: {tt.status}</p>
+          <p>Resumen: {tt.resumen}</p>
+          {/* Muestra otros datos si quieres */}
+        </div>
+      ))}
     </div>
   );
 };

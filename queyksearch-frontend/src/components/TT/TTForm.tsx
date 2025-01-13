@@ -5,10 +5,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api"; // Axios config
 import { Autor, Director } from "../../types/TT";
 import { TTSingleResponse } from "../../types/TTSingleResponse";
+import { useAuth } from "../../context/AuthContext";
 
 const TTForm: React.FC = () => {
   const { ttId } = useParams<{ ttId: string }>();
   const navigate = useNavigate();
+
+  const { user } = useAuth();
 
   // Definición de estados con tipos explícitos
   const [titulo, setTitulo] = useState<string>("");
@@ -158,6 +161,8 @@ const TTForm: React.FC = () => {
     if (fechaPublicacion) {
       formData.append("fechaPublicacion", fechaPublicacion);
     }
+
+    formData.append("createdBy", user._id);
 
     // Depuración: Ver qué se está enviando
     formData.forEach((value, key) => {

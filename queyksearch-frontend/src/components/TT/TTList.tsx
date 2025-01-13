@@ -17,8 +17,33 @@ const TTList: React.FC = () => {
 
   useEffect(() => {
     fetchTTs();
+    // fetchApprovedTTs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
+
+  const fetchApprovedTTs = async (filters?: any) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {
+        page,
+        limit,
+        status: "aprobado", // Solo TTs aprobados
+        ...filters,
+      };
+      const response = await api.get<TTListResponse>("/tts", { params });
+      if (response.data && response.data.data) {
+        setTts(response.data.data.data);
+        setTotal(response.data.data.total);
+        console.log("Respuesta de la API con aprobados:", response.data);
+      } else {
+        setError("Estructura de respuesta no esperada");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
 
   const fetchTTs = async (filters?: any) => {
     setLoading(true);
@@ -43,9 +68,43 @@ const TTList: React.FC = () => {
     setLoading(false);
   };
 
-  const handleSearch = (filters: any) => {
+  const fetchSemanticTTs = async (query: string, limit?: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {
+        query,
+        limit: limit || 8,
+      };
+      const response = await api.get("/tts/semantic", { params });
+      if (response.data && response.data.data) {
+        setTts(response.data.data); // data es un array
+        setTotal(response.data.data.length); // total es la cantidad de resultados
+        console.log(
+          "Respuesta de la API con búsqueda semántica:",
+          response.data
+        );
+      } else {
+        setError("Estructura de respuesta no esperada");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = (
+    filters: any,
+    isSemantic: boolean,
+    semanticQuery?: string
+  ) => {
     setPage(1); // Reiniciar a la primera página al buscar
-    fetchTTs(filters);
+    if (isSemantic && semanticQuery) {
+      fetchSemanticTTs(semanticQuery, limit);
+    } else {
+      fetchTTs(filters);
+      // fetchApprovedTTs(filters);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -118,7 +177,9 @@ const TTList: React.FC = () => {
         <tbody>
           {tts.map((tt) => (
             <tr key={tt._id}>
-              <td>{tt.titulo}</td>
+              <td>
+                <Link to={`/tts/view/${tt._id}`}>{tt.titulo}</Link>
+              </td>
               <td>{tt.autores.map((a) => a.nombreCompleto).join(", ")}</td>
               <td>{tt.palabrasClave.join(", ")}</td>
               <td>{tt.unidadAcademica}</td>

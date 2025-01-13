@@ -23,4 +23,6 @@ export interface TT {
   filename?: string;
   fechaPublicacion?: string; // ISO String
   __v?: number;
+  status?: string;
+  createdBy?: string;
 }

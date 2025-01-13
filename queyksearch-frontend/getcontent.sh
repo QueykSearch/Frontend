@@ -11,7 +11,7 @@ SALIDA="archivos.txt"
 find "$DIRECTORIO" -type f -not -path "*/node_modules/*" | while read -r archivo; do
     echo "===== $archivo =====" >> "$SALIDA"
     cat "$archivo" >> "$SALIDA"
-    echo -e "\n" >> "$SALIDA"
+    echo "\n\n" >> "$SALIDA"
 done
 
 echo "Se ha creado '$SALIDA' con las rutas y contenidos de los archivos."
