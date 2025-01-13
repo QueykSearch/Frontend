@@ -8,8 +8,11 @@ import { TTListResponse } from "../../types/TTListResponse";
 
 // Importa el CSS
 import "./TTList.css";
+import {useAuth} from "../../context/AuthContext";
 
 const TTList: React.FC = () => {
+  const {user} = useAuth();
+
   const [tts, setTts] = useState<TT[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,8 +161,12 @@ const TTList: React.FC = () => {
               <td>{tt.grado}</td>
               <td>
                 <div className="ttlist-actions">
-                  <Link to={`/tts/edit/${tt._id}`}>Editar</Link>
-                  <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+                  {user?.roles.includes("gestor") && (
+                    <>
+                      <Link to={`/tts/edit/${tt._id}`}>Editar</Link>
+                      <button onClick={() => handleDelete(tt._id)}>Eliminar</button>
+                    </>
+                  )}
                   <button onClick={() => handleDownload(tt._id)}>Descargar PDF</button>
                 </div>
               </td>
