@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { TT } from "../../types/TT";
 import { useParams } from "react-router-dom";
 import api from "../../api/api";
+import { useAuth } from "../../context/AuthContext";
 
 const TTDetail: React.FC = () => {
+  const { user } = useAuth();
+
   const { ttId } = useParams<{ ttId: string }>();
   const [tt, setTT] = useState<TT | null>(null);
   const [similarTTs, setSimilarTTs] = useState<TT[]>([]);
@@ -16,6 +19,10 @@ const TTDetail: React.FC = () => {
       try {
         const response = await api.get(`/tts/${ttId}`);
         setTT(response.data.data);
+
+        if (user._id) {
+          await api.post(`/users/${user._id}/history`, { ttId });
+        }
       } catch (err: any) {
         setError("Error al obtener el TT");
       } finally {
@@ -26,7 +33,7 @@ const TTDetail: React.FC = () => {
     if (ttId) {
       fetchTTDetail();
     }
-  }, [ttId]);
+  }, [ttId, user._id]);
 
   const fetchSimilarTTs = async (query: string) => {
     setLoadingSimilar(true);

@@ -21,14 +21,17 @@ const Navbar: React.FC = () => {
           <Link to="/tts">TTs</Link>
         </li>
         {!user.roles.includes("visitor") && (
-          <li>
-            <Link to="/my-proposals">Mis Propuestas</Link>
-          </li>
-        )}
-        {!user.roles.includes("visitor") && (
-          <li>
-            <Link to="/tts/create">Proponer TT</Link>
-          </li>
+          <>
+            <li>
+              <Link to="/my-proposals">Mis Propuestas</Link>
+            </li>
+            <li>
+              <Link to="/tts/create">Proponer TT</Link>
+            </li>
+            <li>
+              <Link to="/history">Historial</Link>
+            </li>
+          </>
         )}
 
         {user.roles.includes("visitor") && (
