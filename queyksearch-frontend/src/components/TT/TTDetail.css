@@ -1,0 +1,90 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fuente base */
+body {
+  font-family: "Poppins", sans-serif;
+  color: #434343; /* texto primario */
+}
+
+/* Contenedor principal (si deseas centrar o limitar ancho) */
+.ttdetail-container {
+  max-width: 1200px; /* Ajusta según tu preferencia */
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Título principal */
+.ttdetail-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #6C47BB; /* brand primario */
+}
+
+/* Texto con label en negrita */
+.ttdetail-info {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.ttdetail-info strong {
+  color: #434343; /* Mantener texto fuerte con color primario */
+}
+
+/* Link de descarga */
+.ttdetail-link {
+  color: #3B8BBC; /* brand secundario */
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.ttdetail-link:hover {
+  opacity: 0.8;
+}
+
+/* Subtítulo para trabajos similares */
+.ttdetail-subtitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #6C47BB;
+}
+
+/* Lista de trabajos similares */
+.ttdetail-similar-list {
+  list-style: none;
+  margin-left: 0; /* elimina indentación */
+  padding-left: 0;
+  margin-top: 0.5rem;
+}
+
+.ttdetail-similar-list li {
+  margin-bottom: 0.4rem;
+}
+
+.ttdetail-similar-list a {
+  color: #3B8BBC; /* brand secundario */
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.ttdetail-similar-list a:hover {
+  opacity: 0.8;
+}
+
+/* Estado de carga / error / ausencia */
+.ttdetail-loading,
+.ttdetail-error,
+.ttdetail-empty {
+  margin: 1rem 0;
+  color: #888888; /* secundario texto */
+  font-size: 1rem;
+}

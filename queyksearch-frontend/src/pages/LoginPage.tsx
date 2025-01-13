@@ -1,8 +1,9 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import api from "../api/api";
-import {useNavigate} from "react-router-dom";
-import {useAuth} from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "./AuthPages.css"; // Importa el archivo CSS
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,7 +13,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const authContext = useAuth();
 
-  const handleLogin = async (event: { preventDefault: () => void; }) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
 
@@ -22,7 +23,7 @@ function LoginPage() {
         password,
       });
 
-      const {accessToken, refreshToken, expiresAt, user} = response.data.data;
+      const { accessToken, refreshToken, expiresAt, user } = response.data.data;
 
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
@@ -46,9 +47,9 @@ function LoginPage() {
   };
 
   return (
-    <div style={{maxWidth: 400, margin: "0 auto"}}>
-      <h1>Iniciar Sesión</h1>
-      <form onSubmit={handleLogin}>
+    <div className="auth-container">
+      <h1 className="auth-title">Iniciar Sesión</h1>
+      <form className="auth-form" onSubmit={handleLogin}>
         <div>
           <label>Email</label>
           <input
@@ -69,11 +70,13 @@ function LoginPage() {
           />
         </div>
 
-        {errorMsg && (
-          <div style={{color: "red", marginTop: 8}}>{errorMsg}</div>
-        )}
+        {errorMsg && <div className="auth-error">{errorMsg}</div>}
 
-        <button type="submit" disabled={loading}>
+        <button
+          className={`auth-button ${loading ? "auth-loading" : ""}`}
+          type="submit"
+          disabled={loading}
+        >
           {loading ? "Cargando..." : "Ingresar"}
         </button>
       </form>

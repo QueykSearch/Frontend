@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./TTSearchBar.css"; // Importa el CSS
 
 interface TTSearchProps {
   onSearch: (filters: any, isSemantic: boolean, semanticQuery?: string) => void;
@@ -42,9 +43,9 @@ const TTSearchBar: React.FC<TTSearchProps> = ({ onSearch }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Selección del tipo de búsqueda */}
-      <div>
+    <form className="ttsearchbar-container" onSubmit={handleSubmit}>
+      {/* Contenedor de radio buttons */}
+      <div className="ttsearchbar-radio-group">
         <label>
           <input
             type="radio"
@@ -65,8 +66,9 @@ const TTSearchBar: React.FC<TTSearchProps> = ({ onSearch }) => {
         </label>
       </div>
 
+      {/* Inputs según el tipo de búsqueda */}
       {searchType === "traditional" ? (
-        <>
+        <div className="ttsearchbar-inputs">
           <input
             type="text"
             placeholder="Título"
@@ -103,20 +105,22 @@ const TTSearchBar: React.FC<TTSearchProps> = ({ onSearch }) => {
             value={anoPublicacion}
             onChange={(e) => setAnoPublicacion(e.target.value)}
           />
-        </>
+        </div>
       ) : (
-        <>
+        <div className="ttsearchbar-inputs">
           <input
             type="text"
             placeholder="Consulta Semántica"
             value={semanticQuery}
             onChange={(e) => setSemanticQuery(e.target.value)}
           />
-        </>
+        </div>
       )}
-      <button type="submit">Buscar</button>
-      <br />
-      <br />
+
+      {/* Botón de buscar */}
+      <button className="ttsearchbar-submit" type="submit">
+        Buscar
+      </button>
     </form>
   );
 };

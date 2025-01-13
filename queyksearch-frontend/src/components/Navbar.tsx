@@ -3,23 +3,33 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "./Navbar.css"; // Importa el CSS
 
 const Navbar: React.FC = () => {
-  const { user, logout } = useAuth(); // <-- Obtenemos la función logout
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   // Manejar la acción de logout
   const handleLogout = () => {
-    logout(); // <-- Llamamos al método del contexto
-    navigate("/login"); // Redirigir a login o donde prefieras
+    logout();
+    navigate("/login");
   };
 
   return (
-    <nav>
-      <ul>
+    <nav className="navbar">
+      {/* Logo a la izquierda */}
+      <Link to="/" className="navbar-logo">
+        <span className="navbar-logo__queyk">Queyk</span>
+        <span className="navbar-logo__search">Search</span>
+      </Link>
+
+      {/* Enlaces a la derecha */}
+      <ul className="navbar-menu">
         <li>
           <Link to="/tts">TTs</Link>
         </li>
+
+        {/* Si NO es 'visitor', mostramos enlaces restringidos */}
         {!user.roles.includes("visitor") && (
           <>
             <li>
@@ -34,6 +44,7 @@ const Navbar: React.FC = () => {
           </>
         )}
 
+        {/* Si es 'visitor', mostramos Login/Register */}
         {user.roles.includes("visitor") && (
           <>
             <li>
@@ -45,14 +56,14 @@ const Navbar: React.FC = () => {
           </>
         )}
 
-        {/* Mostrar enlace a TTs por Aprobar solo para gestores */}
+        {/* Link sólo para gestor */}
         {user.roles.includes("gestor") && (
           <li>
             <Link to="/tts/approval">TTs por Aprobar</Link>
           </li>
         )}
 
-        {/* Mostrar botón Cerrar Sesión si NO es visitante */}
+        {/* Si NO es visitor, se muestra Cerrar Sesión */}
         {!user.roles.includes("visitor") && (
           <li>
             <button onClick={handleLogout}>Cerrar Sesión</button>
