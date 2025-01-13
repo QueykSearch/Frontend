@@ -128,3 +128,37 @@ body {
 .ttform-delete-button:hover {
   opacity: 0.8;
 }
+
+/* Botón super llamativo para la IA */
+.ttform-ai-button {
+  background: linear-gradient(135deg, #6C47BB, #3B8BBC, #6C47BB);
+  background-size: 400% 400%;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.4rem;
+  animation: aiGradient 2s ease infinite;
+  transition: transform 0.2s ease;
+}
+
+/* Animación de gradiente suave */
+@keyframes aiGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.ttform-ai-button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}

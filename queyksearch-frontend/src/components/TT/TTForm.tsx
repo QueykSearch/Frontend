@@ -11,7 +11,6 @@ import "./TTForm.css"; // Importar el CSS
 const TTForm: React.FC = () => {
   const { ttId } = useParams<{ ttId: string }>();
   const navigate = useNavigate();
-
   const { user } = useAuth();
 
   // Definición de estados con tipos explícitos
@@ -30,8 +29,7 @@ const TTForm: React.FC = () => {
   const [fechaPublicacion, setFechaPublicacion] = useState<string>("");
 
   // Nuevo: estado para mostrar loader durante la extracción
-  const [isExtractingMetadata, setIsExtractingMetadata] =
-    useState<boolean>(false);
+  const [isExtractingMetadata, setIsExtractingMetadata] = useState<boolean>(false);
 
   // Cargar Datos si es Edición
   useEffect(() => {
@@ -44,10 +42,12 @@ const TTForm: React.FC = () => {
           setTitulo(tt.titulo || "");
 
           if (tt.autores && Array.isArray(tt.autores)) {
-            setAutores(tt.autores.map((a) => ({
-              nombreCompleto: a.nombreCompleto || "",
-              orcid: a.orcid || "",
-            })));
+            setAutores(
+              tt.autores.map((a) => ({
+                nombreCompleto: a.nombreCompleto || "",
+                orcid: a.orcid || "",
+              }))
+            );
           }
 
           if (tt.palabrasClave && Array.isArray(tt.palabrasClave)) {
@@ -57,17 +57,18 @@ const TTForm: React.FC = () => {
           setUnidadAcademica(tt.unidadAcademica || "");
 
           if (tt.directores && Array.isArray(tt.directores)) {
-            setDirectores(tt.directores.map((d) => ({
-              nombreCompleto: d.nombreCompleto || "",
-              orcid: d.orcid || "",
-            })));
+            setDirectores(
+              tt.directores.map((d) => ({
+                nombreCompleto: d.nombreCompleto || "",
+                orcid: d.orcid || "",
+              }))
+            );
           }
 
           setGrado(tt.grado || "");
           setResumen(tt.resumen || "");
 
           if (tt.fechaPublicacion) {
-            // Ejemplo: 2023-10-01 => substring(0, 10) => "2023-10-01"
             setFechaPublicacion(tt.fechaPublicacion.substring(0, 10));
           }
         } catch (error) {
@@ -131,30 +132,29 @@ const TTForm: React.FC = () => {
     }
   };
 
-  // Manejo de EXTRAER METADATA
-  const handleExtractMetadata = async () => {
+  // Manejo de EXTRAER METADATA (IA)
+  const handleFillWithAI = async () => {
     if (!file) {
       alert("Por favor, selecciona un archivo PDF primero.");
       return;
     }
-
     try {
-      setIsExtractingMetadata(true); // Activar loader
+      setIsExtractingMetadata(true); // Mostrar loader
 
       // Crear FormData con el archivo
       const formData = new FormData();
       formData.append("file", file);
 
-      // Hacer la petición al endpoint de metadata
+      // Llamamos al endpoint de metadata con IA
       const response = await api.post("/tts/metadata", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (response.data && response.data.data) {
         const meta = response.data.data;
-        console.log("Metadata extraída:", meta);
+        console.log("Metadata extraída (IA):", meta);
 
-        // Actualizar los campos del formulario con la metadata
+        // Actualizar los campos del formulario
         if (meta.titulo) setTitulo(meta.titulo);
 
         if (meta.autores && Array.isArray(meta.autores)) {
@@ -181,68 +181,51 @@ const TTForm: React.FC = () => {
         if (meta.grado) setGrado(meta.grado);
         if (meta.resumen) setResumen(meta.resumen);
 
-        // La fecha que viene podría ser solo un año. Ej.: "2021"
+        // Manejo de fecha
         if (meta.fechaPublicacion) {
           const possibleYear = meta.fechaPublicacion.trim();
-          // Si coincide con 4 dígitos, formateamos a YYYY-01-01
           if (/^\d{4}$/.test(possibleYear)) {
             setFechaPublicacion(`${possibleYear}-01-01`);
           } else {
-            // De lo contrario, si es algo tipo "2021-05-17" lo cortamos a 10 chars
             setFechaPublicacion(possibleYear.substring(0, 10));
           }
         }
 
-        alert("Metadata extraída y campos actualizados");
+        alert("La IA completó el formulario con éxito");
       } else {
-        alert("No se recibió metadata válida");
+        alert("No se recibió metadata válida desde la IA");
       }
     } catch (error: any) {
-      console.error("Error al extraer metadata:", error);
-      alert("Error al extraer metadata");
+      console.error("Error al extraer metadata (IA):", error);
+      alert("Error al extraer metadata con IA");
     } finally {
-      setIsExtractingMetadata(false); // Desactivar loader
+      setIsExtractingMetadata(false);
     }
   };
 
   // Manejo de ENVÍO del Formulario
-
-  // Enviar el formulario en `form-data`
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     // Crear `FormData`
     const formData = new FormData();
 
-    // Subida de archivo PDF
     if (file) formData.append("file", file);
-
-    // Los campos simples, como título, grado, resumen
     formData.append("titulo", titulo);
     formData.append("unidadAcademica", unidadAcademica);
     formData.append("grado", grado);
     formData.append("resumen", resumen);
-
-    // Convertimos a JSON las estructuras complejas
     formData.append("autores", JSON.stringify(autores));
     formData.append("directores", JSON.stringify(directores));
     formData.append("palabrasClave", JSON.stringify(palabrasClave));
-
     if (fechaPublicacion) {
       formData.append("fechaPublicacion", fechaPublicacion);
     }
-
     formData.append("createdBy", user._id);
-
-    // Depuración: Ver qué se está enviando
-    formData.forEach((value, key) => {
-      console.log(`${key}: ${value}`);
-    });
 
     try {
       if (ttId) {
         // Actualizar TT
-        // convertir a JSON formData
         const jsonData = {
           titulo,
           unidadAcademica,
@@ -257,8 +240,6 @@ const TTForm: React.FC = () => {
         await api.put(`/tts/${ttId}`, jsonData, {
           headers: { "Content-Type": "application/json" },
         });
-
-        // await api.put(`/tts/${ttId}`, formData);
 
         alert("TT actualizado con éxito");
       } else {
@@ -277,22 +258,41 @@ const TTForm: React.FC = () => {
 
   return (
     <div className="ttform-container">
-      <h2 className="ttform-title">
-        {ttId ? "Editar" : "Crear"} Trabajo de Titulación
-      </h2>
+      <h2 className="ttform-title">{ttId ? "Editar" : "Crear"} Trabajo de Titulación</h2>
 
       {/* Loader simple mientras extraemos metadata */}
       {isExtractingMetadata && (
         <div style={{ marginBottom: "10px", color: "blue" }}>
-          Extrayendo metadata, por favor espera...
+          Extrayendo metadata con IA, por favor espera...
         </div>
       )}
 
       <form className="ttform-form" onSubmit={handleSubmit}>
+        {/* Subida de PDF (moverlo al inicio) */}
+        <div className="ttform-group">
+          <label>Archivo PDF del TT:</label>
+          <input
+            className="ttform-input"
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+          />
+          {/* Botón súper llamativo para IA */}
+          <button
+            type="button"
+            className="ttform-ai-button"
+            onClick={handleFillWithAI}
+            disabled={isExtractingMetadata}
+          >
+            {isExtractingMetadata ? "Extrayendo..." : "Rellenar con IA"}
+          </button>
+        </div>
+
         {/* TÍTULO */}
         <div className="ttform-group">
           <label>Título:</label>
           <input
+            className="ttform-input"
             type="text"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
@@ -310,9 +310,7 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="Nombre Completo"
                 value={autor.nombreCompleto}
-                onChange={(e) =>
-                  handleAutorChange(index, "nombreCompleto", e.target.value)
-                }
+                onChange={(e) => handleAutorChange(index, "nombreCompleto", e.target.value)}
                 required
               />
               <input
@@ -320,9 +318,7 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={autor.orcid}
-                onChange={(e) =>
-                  handleAutorChange(index, "orcid", e.target.value)
-                }
+                onChange={(e) => handleAutorChange(index, "orcid", e.target.value)}
               />
               {autores.length > 1 && (
                 <button
@@ -393,9 +389,7 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="Nombre Completo"
                 value={director.nombreCompleto}
-                onChange={(e) =>
-                  handleDirectorChange(index, "nombreCompleto", e.target.value)
-                }
+                onChange={(e) => handleDirectorChange(index, "nombreCompleto", e.target.value)}
                 required
               />
               <input
@@ -403,9 +397,7 @@ const TTForm: React.FC = () => {
                 type="text"
                 placeholder="ORCID (Opcional)"
                 value={director.orcid}
-                onChange={(e) =>
-                  handleDirectorChange(index, "orcid", e.target.value)
-                }
+                onChange={(e) => handleDirectorChange(index, "orcid", e.target.value)}
               />
               {directores.length > 1 && (
                 <button
@@ -446,25 +438,6 @@ const TTForm: React.FC = () => {
             onChange={(e) => setResumen(e.target.value)}
             required
           />
-        </div>
-
-        {/* Subida de PDF */}
-        <div className="ttform-group">
-          <label>Archivo PDF del TT:</label>
-          <input
-            className="ttform-input"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-          />
-          <button
-            type="button"
-            onClick={handleExtractMetadata}
-            style={{ marginLeft: "8px" }}
-            disabled={!file || isExtractingMetadata}
-          >
-            {isExtractingMetadata ? "Extrayendo..." : "Extraer Metadata"}
-          </button>
         </div>
 
         {/* Fecha de Publicación (opcional) */}
