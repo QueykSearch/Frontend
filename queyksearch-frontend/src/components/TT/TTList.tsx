@@ -51,24 +51,6 @@ const TTList: React.FC = () => {
     setLoading(false);
   };
 
-  const fetchTTs = async (filters?: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = { page, limit, ...filters };
-      const response = await api.get<TTListResponse>("/tts", { params });
-      if (response.data && response.data.data) {
-        setTts(response.data.data.data);
-        setTotal(response.data.data.total);
-      } else {
-        setError("Estructura de respuesta no esperada");
-      }
-    } catch (err: any) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
-
   const fetchSemanticTTs = async (query: string, limit?: number) => {
     setLoading(true);
     setError(null);
