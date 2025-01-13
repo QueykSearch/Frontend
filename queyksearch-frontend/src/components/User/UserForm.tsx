@@ -44,14 +44,14 @@ const UserForm: React.FC = () => {
     try {
       if (userId) {
         // Actualizar Usuario
-        await axios.put(
-          `http://localhost:4000/api/v1/users/${userId}`,
+        await api.put(
+          `/users/${userId}`,
           userData
         );
         alert("Usuario actualizado con éxito");
       } else {
         // Crear Usuario
-        await axios.post("http://localhost:4000/api/v1/users", userData);
+        await api.post("/users", userData);
         alert("Usuario creado con éxito");
       }
       navigate("/users");

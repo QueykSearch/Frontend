@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { User } from "../../types/User";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import api from "../../api/api";
 
 const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -11,8 +12,8 @@ const UserList: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get<User[]>(
-          "http://localhost:4000/api/v1/users"
+        const response = await api.get<User[]>(
+          "/users"
         );
         setUsers(response.data);
         setLoading(false);
@@ -28,7 +29,7 @@ const UserList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de eliminar este Usuario?")) {
       try {
-        await axios.delete(`http://localhost:4000/api/v1/users/${id}`);
+        await api.delete(`/users/${id}`);
         setUsers(users.filter((user) => user._id !== id));
       } catch (err: any) {
         alert("Error al eliminar el Usuario");
